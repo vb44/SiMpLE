@@ -5,55 +5,56 @@ int parseArgs(params* config, int argc, char* argv[])
     // check the number of arguments
     if (argc < 16 || argc > 18)
     {
-        std::cerr << "./simple "                            << 
-                     "-path \"path_to_scans\" "             << 
-                     "-sigma \"sigma_value\" "              << 
-                     "-rMap \"radius [m]\" "                << 
-                     "-rNew \"radius [m]\" "                << 
-                     "-convergenceTolerance \"tolerance\" " << 
-                     "-maxSensorRange \"radius [m]\" "      << 
-                     "-minSensorRange \"radius [m]\" "      << 
-                     "-outputFileName \"fileName\" "        << 
-                     "-verbose (optional)"                  << std::endl;
+        std::cerr << "SiMpLE usage:"                                << std::endl <<
+                     "./simple "                                    << std::endl <<
+                     "--path                    \"path_to_scans\" " << std::endl <<
+                     "--sigma                   \"sigma_value\" "   << std::endl <<
+                     "--rMap                    \"radius [m]\" "    << std::endl <<
+                     "--rNew                    \"radius [m]\" "    << std::endl <<
+                     "--convergenceTolerance    \"tolerance\" "     << std::endl <<
+                     "--maxSensorRange          \"radius [m]\" "    << std::endl <<
+                     "--minSensorRange          \"radius [m]\" "    << std::endl <<
+                     "--outputFileName          \"fileName\" "      << std::endl <<
+                     "--verbose (optional)"                         << std::endl;
         return 1;
     }
     
     // parse the arguments
     for (unsigned int i = 0; i < argc; i++)
     {
-        if (strcmp(argv[i],"-path") == 0)
+        if (strcmp(argv[i],"--path") == 0)
         {
             config->path = argv[i+1];        
         }
-        if (strcmp(argv[i],"-sigma") == 0)
+        if (strcmp(argv[i],"--sigma") == 0)
         {
             config->sigma = std::stod(argv[i+1]);        
         }
-        if (strcmp(argv[i],"-rMap") == 0)
+        if (strcmp(argv[i],"--rMap") == 0)
         {
             config->rMap = std::stod(argv[i+1]);        
         }
-        if (strcmp(argv[i],"-rNew") == 0)
+        if (strcmp(argv[i],"--rNew") == 0)
         {
             config->rNew = std::stod(argv[i+1]);        
         }
-        if (strcmp(argv[i],"-convergenceTolerance") == 0)
+        if (strcmp(argv[i],"--convergenceTolerance") == 0)
         {
             config->convergenceTol = std::stod(argv[i+1]);        
         }
-        if (strcmp(argv[i],"-maxSensorRange") == 0)
+        if (strcmp(argv[i],"--maxSensorRange") == 0)
         {
             config->maxSensorRange = std::stod(argv[i+1]);        
         }
-        if (strcmp(argv[i],"-minSensorRange") == 0)
+        if (strcmp(argv[i],"--minSensorRange") == 0)
         {
             config->minSensorRange = std::stod(argv[i+1]);        
         }
-        if (strcmp(argv[i],"-outputFileName") == 0)
+        if (strcmp(argv[i],"--outputFileName") == 0)
         {
             config->outputFileName = argv[i+1];        
         }
-        if (strcmp(argv[i],"-verbose") == 0)
+        if (strcmp(argv[i],"--verbose") == 0)
         {
             config->verbose = true;        
         }

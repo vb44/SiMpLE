@@ -16,13 +16,11 @@ The motivation stems from reducing the complexity and configuration burden of lo
 The code is portable, easy to understand and modify.
 
 ## Sample Results
----
 We perform among state-of-the-art LiDAR odometry methods with a simple and use case agnostic algorithm.
 
 **Add KITTI, MulRan, Saab, and Forest GIFs**
 
 ## Method
----
 The method has three steps and four configuration parameters displayed in green.
 ![methodology](media/methodology_green.jpg)
 
@@ -42,7 +40,6 @@ There are two more optional settings:
 2. ***rMin*** is for computational benefit only. The default value is zero where it has no effect. Increasing this value eliminates the rings commonly formed around the sensor to reduce the size of the point cloud without losing geometric information. 
 
 ## Dependencies
----
 SiMpLE uses a few open-source libraries for Kd-Trees, matrix operations, optimisation functions, and CPU threading.
 * The *nanoflann* library for KD-tree operations: https://github.com/jlblancoc/nanoflann
 * The *Eigen* library for maths operations: https://eigen.tuxfamily.org/dox/GettingStarted.html
@@ -55,7 +52,6 @@ Alternative options for any of the libraries can be used if desired.
 The code is easy to change.
 
 ## Installation
----
 Clone the repository.
 ```bash
 git clone https://github.com/vb44/SiMpLE.git
@@ -77,11 +73,9 @@ make
 ```
 
 ## Example
----
 <!-- Show example usage. -->
 Only works with *.bin* files in the KITTI format.
 
 ## Sample results interpretation
----
 An example of interpreting the result file is displayed in *plotResultsMATLAB/interpretResults.m*.
 

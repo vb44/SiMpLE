@@ -6,7 +6,7 @@ clc;
 close all;
 
 % convert the results file to (6x1) vector pose estimates
-filePath = "~/Documents/public_repositories/SiMpLE/results/testFromHere6";
+filePath = "~/Documents/public_repositories/SiMpLE/results/test_KITTI_10";
 res = readmatrix(filePath);
 
 poseEstimates = zeros(length(res),6);
