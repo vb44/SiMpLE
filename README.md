@@ -1,5 +1,7 @@
 # SiMpLE LiDAR odometry
-Simple Mapping and Localisation Estimation (SiMpLE) is a low-drift and low-configuration LiDAR odometry method providing accurate localisation and mapping with a variety of sensors.\
+Simple Mapping and Localisation Estimation (SiMpLE) is a low-drift and low-configuration LiDAR odometry method providing accurate localisation and mapping with a variety of sensors.
+
+We perform among state-of-the-art LiDAR odometry methods with a simple and use case agnostic algorithm.
 The method is derived from using raw point clouds. We do not modify or develop a new variant of any existing algorithm.
 The code is written for readability and easy understanding with the methodology described in the paper.
 The software can be optimised for increased performance.
@@ -13,12 +15,7 @@ We have tested the algorithm using LiDARs with various point cloud densities, fi
 
 The motivation stems from reducing the complexity and configuration burden of localisation and mapping algorithms.
 
-The code is portable, easy to understand and modify.
-
-## Sample Results
-We perform among state-of-the-art LiDAR odometry methods with a simple and use case agnostic algorithm.
-
-**Add KITTI, MulRan, Saab, and Forest GIFs**
+The code is portable, easy to understand, and modify.
 
 ## Method
 The method has three steps and four configuration parameters displayed in green.
