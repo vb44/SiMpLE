@@ -74,7 +74,26 @@ make
 ## Example
 <!-- Show example usage. -->
 Only works with *.bin* files in the KITTI format.
+However, the code is human-friendly and very easy to modify to suit the desired inputs and outputs.
+When compiled, the SiMpLE algorithm is run from the command line as shown below.
+```bash
+./simple 
+--path                    "path_to_scans" 
+--sigma                   "sigma_value" 
+--rMap                    "radius [m]" 
+--rNew                    "radius [m]" 
+--convergenceTolerance    "tolerance" 
+--maxSensorRange          "radius [m]" 
+--minSensorRange          "radius [m]" 
+--outputFileName          "fileName" 
+--verbose (optional)
+```
+The verbose mode prints information to the terminal.
+Sample use with the KITTI dataset:
+
+```bash
+./simple --path KITTI/07/velodyne/ --sigma 1.0 --rMap 2.0 --rNew 1.0 --convergenceTolerance 1e-6 --minSensorRange 0 --maxSensorRange 120 --outputFileName ./results/test_Kitti_07
+```
 
 ## Sample results interpretation
 An example of interpreting the result file is displayed in *plotResultsMATLAB/interpretResults.m*.
-
