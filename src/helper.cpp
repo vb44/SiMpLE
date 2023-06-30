@@ -205,20 +205,20 @@ void writeResults(params* config, std::vector<std::vector<double> > poseEstimate
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 
     // write the config to file
-    std::string outputConfigFileName = outputFileName+"_config";
+    std::string outputConfigFileName = outputFileName+"_config.m";
     std::ofstream outputConfigFile(outputConfigFileName);
-    outputConfigFile << "computation finised at : " << std::ctime(&end_time)
-                     << "avg time per scan [ms] : " << avgTimePerScan << std::endl
+    outputConfigFile << "% computation finised at : " << std::ctime(&end_time)
                      << std::endl
-                     << "scansFolderPath        = " << "\"" <<  config->path << "\"" << std::endl
-                     << "sigma [m]              = " << config->sigma                 << std::endl
-                     << "rMap [m]               = " << config->rMap                  << std::endl
-                     << "rNew [m]               = " << config->rNew                  << std::endl
-                     << "convergenceTolerance   = " << config->convergenceTol        << std::endl
-                     << "maxSensorRange [m]     = " << config->maxSensorRange        << std::endl
-                     << "minSensorRange [m]     = " << config->minSensorRange        << std::endl
-                     << "outputFileName         = " << config->outputFileName        << std::endl
-                     << "outputConfigFileName   = " << outputConfigFileName          << std::endl;
+                     << "scansFolderPath        = " << "\"" <<  config->path  << "\""           << ";" << std::endl
+                     << "sigma                  = " << config->sigma                            << ";" << " % [m]" << std::endl
+                     << "rMap                   = " << config->rMap                             << ";" << " % [m]" << std::endl
+                     << "rNew                   = " << config->rNew                             << ";" << " % [m]" << std::endl
+                     << "convergenceTolerance   = " << config->convergenceTol                   << ";" << std::endl
+                     << "maxSensorRange         = " << config->maxSensorRange                   << ";" << " % [m]" << std::endl
+                     << "minSensorRange         = " << config->minSensorRange                   << ";" << " % [m]" << std::endl
+                     << "outputFileName         = " << "\"" << config->outputFileName << "\""   << ";" << std::endl
+                     << "outputConfigFileName   = " << "\"" << outputConfigFileName << "\""     << ";" << std::endl
+                     << "avg_time_per_scan      = " << avgTimePerScan                           << ";" << " % [ms]" << std::endl;
     outputConfigFile.close();
 }
 
