@@ -1,84 +1,60 @@
 #include "objectiveFunction.h"
 
-// constructor to initialise the member variables
-ObjectiveFunction::ObjectiveFunction(Eigen::Matrix3d uncertainty, scan targetScanInput,
-                    PointCloud<double> subMap,  my_kd_tree_t *sourceScanKdTree_) 
+ObjectiveFunction::ObjectiveFunction(Eigen::Matrix3d uncertainty, Eigen::MatrixXd scan,
+                    PointCloud<double> subMap,  my_kd_tree_t *sourceScanKdTree) 
 {
     uncertainty_ = uncertainty;
-    targetScanInput_ = targetScanInput;
+    scan_ = scan;
     sourceScan_ = subMap;
-    targetScanSize_ = targetScanInput.x.size();
-    subMapKdTree = sourceScanKdTree_;
-
-    targetScanMultiply_.resize(4,targetScanSize_);
-    targetScanMultiply_.row(0) = Eigen::Map<Eigen::RowVectorXd>(targetScanInput.x.data(),targetScanSize_);
-    targetScanMultiply_.row(1) = Eigen::Map<Eigen::RowVectorXd>(targetScanInput.y.data(),targetScanSize_);
-    targetScanMultiply_.row(2) = Eigen::Map<Eigen::RowVectorXd>(targetScanInput.z.data(),targetScanSize_);
-    targetScanMultiply_.row(3) = Eigen::VectorXd::Ones(targetScanSize_);
+    scanSize_ = scan.rows();
+    subMapKdTree_ = sourceScanKdTree;
 }
 
-// overload function call operator
 double ObjectiveFunction::operator()(const column_vector& m) const
 {
-
     // transformation hypothesis from the new scan to the local map
     Eigen::Matrix4d hypothesis = homogeneous(m(0),m(1),m(2),m(3),m(4),m(5));
+
     
     // transform the new scan using the transformation hypothesis            
-    scan targetScanTransformedInput_;
-    targetScanTransformedInput_.x.resize(targetScanSize_);
-    targetScanTransformedInput_.y.resize(targetScanSize_);
-    targetScanTransformedInput_.z.resize(targetScanSize_);
-    Eigen::MatrixXd targetScanTransformed_ = hypothesis * targetScanMultiply_;
-    Eigen::VectorXd::Map(&targetScanTransformedInput_.x[0],targetScanSize_) = targetScanTransformed_.row(0);
-    Eigen::VectorXd::Map(&targetScanTransformedInput_.y[0],targetScanSize_) = targetScanTransformed_.row(1);
-    Eigen::VectorXd::Map(&targetScanTransformedInput_.z[0],targetScanSize_) = targetScanTransformed_.row(2);
+    Eigen::MatrixXd scanTransformed_ = hypothesis * scan_.transpose();
     
+    // set the score to zero
     double score = 0;
-    std::vector<double> scores(targetScanTransformedInput_.x.size(),0.0);
+    std::vector<double> scores(scanTransformed_.cols(),0.0);
     
     // calculate the hypothesis reward 
     // loop through each transformed target scan and find the closest point in the source scan
     tbb::parallel_for(
-    tbb::blocked_range<int>(0,targetScanTransformedInput_.x.size()),
+    tbb::blocked_range<int>(0,scanTransformed_.cols()),
     [&](tbb::blocked_range<int> r)
     {
-        for (unsigned int i = r.begin(); i < r.end(); ++i)
+        for (unsigned int i = r.begin(); i < r.end(); i++)
         {
+
             size_t numResults = 1;
             uint32_t retIndex;
             double outDistSqr;
             double query_pt[3];
-            Eigen::RowVector3d pointTaregtScan;
-            Eigen::RowVector3d nearestPointSourceScan;
-            std::vector<double> nearestPoints;
-
-            query_pt[0] = targetScanTransformedInput_.x[i];
-            query_pt[1] = targetScanTransformedInput_.y[i];
-            query_pt[2] = targetScanTransformedInput_.z[i];
+            Eigen::RowVector3d e;
+            query_pt[0] = scanTransformed_.coeffRef(0,i); 
+            query_pt[1] = scanTransformed_.coeffRef(1,i);
+            query_pt[2] = scanTransformed_.coeffRef(2,i);
             
-            subMapKdTree->knnSearch(&query_pt[0],numResults,&retIndex,&outDistSqr);
+            // search for the closest point
+            subMapKdTree_->knnSearch(&query_pt[0],numResults,&retIndex,&outDistSqr);
 
-            // score the points
-            pointTaregtScan << query_pt[0], query_pt[1], query_pt[2];
-            nearestPointSourceScan << sourceScan_.pts[retIndex].x,
-                                        sourceScan_.pts[retIndex].y,
-                                        sourceScan_.pts[retIndex].z;
-
-            scores[i] = exp((-((pointTaregtScan-nearestPointSourceScan)) * 
-                                        uncertainty_ * 
-                                    ((pointTaregtScan-nearestPointSourceScan)).transpose() / 2)(0,0));
+            // score the difference between the current and nearest point
+            e << query_pt[0]-sourceScan_.pts[retIndex].x,
+                 query_pt[1]-sourceScan_.pts[retIndex].y,
+                 query_pt[2]-sourceScan_.pts[retIndex].z;
+            scores[i] = exp((-(e)*uncertainty_*(e).transpose() / 2)(0,0));
         }
     });
 
+    // sum the scores
     for (auto& n: scores)
         score -= n;
-
-    // for (int i = 0; i < targetScanTransformedInput_.x.size(); i++)
-    // {
-    //     score -= scores[i];
-    // }
-
-
+        
     return score;
 }

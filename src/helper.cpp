@@ -115,16 +115,16 @@ std::vector<double> hom2rpyxyz(Eigen::Matrix4d T)
     return result;
 }
 
-void convertToPointCloud3D(PointCloud<double>& pc, scan &pointcloudRead)
+void convertToPointCloud3D(PointCloud<double>& pc, Eigen::MatrixXd scan)
 {
-    size_t pcLength = pointcloudRead.x.size();
+    size_t pcLength = scan.rows();
     pc.pts.resize(pcLength);
 
     for (size_t i = 0; i < pcLength; i++)
     {
-        pc.pts[i].x = pointcloudRead.x[i];
-        pc.pts[i].y = pointcloudRead.y[i];
-        pc.pts[i].z = pointcloudRead.z[i];
+        pc.pts[i].x = scan(i,0);
+        pc.pts[i].y = scan(i,1);
+        pc.pts[i].z = scan(i,2);
         
     } 
 }
@@ -132,7 +132,6 @@ void convertToPointCloud3D(PointCloud<double>& pc, scan &pointcloudRead)
 bool compareStrings(std::string a, std::string b)
 {
     std::string delimiterStart = "/";
-    // std::string delimiterStart = "subset/";
     std::string delimiterEnd = ".bin";
     
     std::string aNum = a.substr(a.find_last_of(delimiterStart)+delimiterStart.size(),a.size());
@@ -143,20 +142,22 @@ bool compareStrings(std::string a, std::string b)
     return stoi(aNum) < stoi(bNum);
 }
 
-scan subsample(double subsampleRadius, std::set<int> allPoints, scan pts)
+Eigen::MatrixXd subsample(double subsampleRadius, std::set<int> allPoints, Eigen::MatrixXd scan)
 {
-    scan scanSubsampled;    
-    PointCloud<double> scanToSubsample;
-    convertToPointCloud3D(scanToSubsample,pts);
+    subsampleRadius = pow(subsampleRadius,2); // nanoflann uses the squared radius
+    Eigen::MatrixXd scanSubsampled(scan.rows(),scan.cols());
+    PointCloud<double> scanForKdTree;
+    convertToPointCloud3D(scanForKdTree,scan);
 
     // create a Kd tree
-    my_kd_tree_t *scanKdTree = new my_kd_tree_t(3,scanToSubsample,{10});
-    
+    my_kd_tree_t *scanKdTree = new my_kd_tree_t(3,scanForKdTree,{10});
+    unsigned int counter = 0;
+
     // subsample radially
     for (unsigned int i : allPoints)
     {
         std::vector<nanoflann::ResultItem<uint32_t, double>> ret_matches;
-        const double query_pt[3] = {pts.x[i],pts.y[i],pts.z[i]};
+        const double query_pt[3] = {scan.coeffRef(i,0),scan.coeffRef(i,1),scan.coeffRef(i,2)};
         const size_t nMatches = scanKdTree->radiusSearch(&query_pt[0], subsampleRadius, ret_matches);
         for (unsigned int j = 0; j < nMatches; j++)
         {
@@ -165,12 +166,11 @@ scan subsample(double subsampleRadius, std::set<int> allPoints, scan pts)
                 allPoints.erase(ret_matches[j].first);
             }
         }
-        scanSubsampled.x.push_back(pts.x[i]);
-        scanSubsampled.y.push_back(pts.y[i]);
-        scanSubsampled.z.push_back(pts.z[i]);
+        scanSubsampled.row(counter) << scan.coeffRef(i,0),scan.coeffRef(i,1),scan.coeffRef(i,2),1;
+        counter++;
     }
     delete scanKdTree; // free memory
-    return scanSubsampled;
+    return scanSubsampled.topRows(counter);
 }
 
 void writeResults(params* config, std::vector<std::vector<double> > poseEstimates, std::string outputFileName, double avgTimePerScan)
@@ -222,8 +222,8 @@ void writeResults(params* config, std::vector<std::vector<double> > poseEstimate
     outputConfigFile.close();
 }
 
-// code from https://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf
 void printProgress(double percentage) {
+    // code from https://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf
     int progressBarWidth = 60;
     char progressBarString[] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
     int val = (int) (percentage * 100);
@@ -231,4 +231,56 @@ void printProgress(double percentage) {
     int rpad = progressBarWidth - lpad;
     printf("\r%3d%% [%.*s%*s]", val, lpad, progressBarString, rpad, "");
     fflush(stdout);
+}
+
+
+Eigen::MatrixXd correctKittiScan(Eigen::MatrixXd scan) {
+
+    // Adapted from KISS-ICP opensource code
+    // TODO: add CPU parallelising to this
+
+    constexpr double VERTICAL_ANGLE_OFFSET = (0.205 * M_PI) / 180.0;
+
+    Eigen::MatrixXd corrected_frame(scan.rows(),scan.cols());
+    for(unsigned int i = 0; i < scan.rows(); i++) {
+        Eigen::Vector3d pt;
+        Eigen::Vector3d ptCorrected;
+        pt << scan(i,0),scan(i,1),scan(i,2);
+        const Eigen::Vector3d rotationVector = pt.cross(Eigen::Vector3d(0., 0., 1.));
+        ptCorrected = Eigen::AngleAxisd(VERTICAL_ANGLE_OFFSET, rotationVector.normalized()) * pt;
+        corrected_frame.row(i) << ptCorrected(0),ptCorrected(1),ptCorrected(2),1;
+    }
+    return corrected_frame;
+}
+
+Eigen::MatrixXd readScan(std::string fileName, params &config, std::set<int> &allPoints)
+{
+    std::ifstream file(fileName, std::ios::in | std::ios::binary);
+    // if (!file) return EXIT_FAILURE;
+
+    float item;
+    Eigen::MatrixXd ptsRead;
+    Eigen::MatrixXd ptsCorrected;
+    std::vector<double> ptsFromFile;    // pts read from file
+    int counter = 0;
+    
+    while (file.read((char*)&item, sizeof(item)))
+        ptsFromFile.push_back(item);
+
+    unsigned int numPts = ptsFromFile.size()/4;
+    ptsRead.resize(numPts,4);
+ 
+    for (unsigned int i = 0; i < ptsFromFile.size(); i+=4)
+    {
+        // save the pt if it is within the maximum and mininmum sensor ranges
+        double normSquared = pow(ptsFromFile[i],2)+pow(ptsFromFile[i+1],2)+pow(ptsFromFile[i+2],2); 
+        if ((normSquared > pow(config.minSensorRange,2)) && (normSquared < pow(config.maxSensorRange,2)))
+        {
+            ptsRead.row(counter) << ptsFromFile[i],ptsFromFile[i+1],ptsFromFile[i+2],1;
+            allPoints.insert(counter); // save the pt index for subsampling
+            counter++;
+        }
+    }
+    // the size of the matrix may decrease after removing pts from the min and max sensor ranges
+    return ptsRead.topRows(counter); 
 }

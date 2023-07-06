@@ -7,16 +7,16 @@ int main(int argc, char* argv[])
     // ------------------------------------------------------------------------
     params config;
     int err = parseArgs(&config, argc, argv);
-    if (err)
-        exit(1);
+    if (err) exit(1);
     
+    // construct the scoring matrix used in the objective function 
     Eigen::Matrix3d uncertainty;
     uncertainty << pow(config.sigma,-2),0,0,
                    0,pow(config.sigma,-2),0,
                    0,0,pow(config.sigma,-2);
 
     // ------------------------------------------------------------------------
-    // LOAD THE SCANS
+    // LOAD THE SCANS PATHS
     // ------------------------------------------------------------------------
     std::vector<std::string> scanFiles;
     for (auto const& dir_entry : std::filesystem::directory_iterator(config.path)) 
@@ -30,191 +30,152 @@ int main(int argc, char* argv[])
 
     // ------------------------------------------------------------------------
     // DETERMINE POINT CLOUD REGISTRATION RESULTS
-    // ------------------------------------------------------------------------
-    bool addPoint = true;
-    scan subMap;
-    scan targetScan;    
-    PointCloud<double> subMapNF;
+    // ------------------------------------------------------------------------     
+    Eigen::MatrixXd subMap(0,4);           // container to store the submap
+    PointCloud<double> subMapNanoflann;    // a nanoflann-friendly submap
 
+    // store the pose estimates in (roll,pitch,yaw,x,y,z,registrationScore) format
     std::vector<std::vector<double> > poseEstimates(numScans,std::vector<double>(7));
-    std::vector<double> startingPointPrev = {0.0,0.0,0.0,0.0,0.0,0.0};
+    
+    // seed for the optimisation solver
+    std::vector<double> seedConstVel = {0.0,0.0,0.0,0.0,0.0,0.0};
 
     // start the timer
     auto startReg = std::chrono::high_resolution_clock::now();
 
-    // loop over all scans and save the point clouds
+    // loop over all input scans, update the submap, and save the registration result
     for (unsigned int scanNum = 0; scanNum < numScans; scanNum++)
     {
         // --------------------------------------------------------------------
-        // READ THE POINT CLOUD
+        // READ THE POINT CLOUD FROM THE .bin FILES (KITTI FORMAT)
         // --------------------------------------------------------------------
-        std::ifstream file(scanFiles[scanNum], std::ios::in | std::ios::binary);
-        if (!file) return EXIT_FAILURE;
-
-        float item;
-        scan pts;
-        std::vector<double> ptsFromFile;
+        // a set with the indicies used for subsampling in STEP 1
         std::set<int> allPoints;
-        int counter = 0;
-        
-        while (file.read((char*)&item, sizeof(item)))
-            ptsFromFile.push_back(item);
 
-        for (unsigned int i = 0; i < ptsFromFile.size(); i+=4)
-        {
-            if (pow(ptsFromFile[i],2)+pow(ptsFromFile[i+1],2) > pow(config.minSensorRange,2))
-            {
-                pts.x.push_back(ptsFromFile[i]);
-                pts.y.push_back(ptsFromFile[i+1]);
-                pts.z.push_back(ptsFromFile[i+2]);
-
-                allPoints.insert(counter);
-                counter++;
-            }
-        }
+        // read the input scan
+        Eigen::MatrixXd ptsInRange = readScan(scanFiles[scanNum], config, allPoints);
 
         // --------------------------------------------------------------------
-        // STEP 1: SUBSAMPLE THE INPUT POINT CLOUD
+        // CORRECT THE SCAN - KITTI ONLY
         // --------------------------------------------------------------------
-        targetScan = subsample(config.rNew, allPoints, pts);
+        // apply the calibration factor as explained in IMLS-SLAM, CT-ICP, and KISS-ICP
+        // comment the next line if it is not the Kitti dataset and uncomment
+        // the following line
+        Eigen::MatrixXd ptsCorrected = correctKittiScan(ptsInRange);    // comment out for not Kitti
+        // Eigen::MatrixXd ptsCorrected = ptsInRange;                   // uncomment for not Kitti       
         
+        // --------------------------------------------------------------------
+        // STEP 1: SUBSAMPLE THE INPUT POINT CLOUD AT rNew
+        // --------------------------------------------------------------------
+        Eigen::MatrixXd ptsSubsampled = subsample(config.rNew, allPoints, ptsCorrected);
+
         // --------------------------------------------------------------------
         // STEP 2: INPUT POINT CLOUD TO LOCAL MAP REGISTRATION
         // --------------------------------------------------------------------
         if (scanNum > 0)
         {
-            
             // construct a kd tree for the registration process
             // (dimension, scan, max leaf)
-            convertToPointCloud3D(subMapNF,subMap);
-            my_kd_tree_t *subMapKdTree = new my_kd_tree_t(3,subMapNF,{10});
+            convertToPointCloud3D(subMapNanoflann,subMap);
+            my_kd_tree_t *subMapKdTree = new my_kd_tree_t(3,subMapNanoflann,{10});
 
-            // find the best solution to the objective function
-            ObjectiveFunction objFuncFine = ObjectiveFunction(uncertainty,targetScan,
-                                                              subMapNF, subMapKdTree);
+            // instantiate the objective function
+            ObjectiveFunction objFuncFine = ObjectiveFunction(uncertainty,ptsSubsampled,
+                                                              subMapNanoflann, subMapKdTree);
 
             // use the previous pose estimate as the seed
-            column_vector startingPoint = {startingPointPrev[0],
-                                           startingPointPrev[1],
-                                           startingPointPrev[2],
-                                           startingPointPrev[3],
-                                           startingPointPrev[4],
-                                           startingPointPrev[5]};
-        
-            double regScoreFine = dlib::find_min_using_approximate_derivatives(
-                                        dlib::bfgs_search_strategy(),
-                                        dlib::objective_delta_stop_strategy(config.convergenceTol),
-                                        objFuncFine, startingPoint, -10000000);
-            delete subMapKdTree; // free memory
+            column_vector regResult = {seedConstVel[0],
+                                       seedConstVel[1],
+                                       seedConstVel[2],
+                                       seedConstVel[3],
+                                       seedConstVel[4],
+                                       seedConstVel[5]};
 
-            // save the results
-            std::vector<double> res = {startingPoint(0),
-                                       startingPoint(1),
-                                       startingPoint(2),
-                                       startingPoint(3),
-                                       startingPoint(4),
-                                       startingPoint(5),
-                                       regScoreFine,
-                                       double(subMap.x.size())};
+            // find the best solution to the objective function
+            double registrationScore = dlib::find_min_using_approximate_derivatives(
+                                       dlib::bfgs_search_strategy(),
+                                       dlib::objective_delta_stop_strategy(config.convergenceTol),
+                                       objFuncFine, regResult, -10000000);
+            delete subMapKdTree; // free memory
             
             // save the results
-            poseEstimates[scanNum] = res;
+            poseEstimates[scanNum] = {regResult(0),
+                                      regResult(1),
+                                      regResult(2),
+                                      regResult(3),
+                                      regResult(4),
+                                      regResult(5),
+                                      registrationScore};
 
             // calculate the seed for the next pose estimate using the constant velocity mdoel
-            startingPointPrev = hom2rpyxyz(homogeneous(poseEstimates[scanNum][0],
-                                                       poseEstimates[scanNum][1],
-                                                       poseEstimates[scanNum][2],
-                                                       poseEstimates[scanNum][3],
-                                                       poseEstimates[scanNum][4],
-                                                       poseEstimates[scanNum][5])*
-                                          (homogeneous(poseEstimates[scanNum-1][0],
-                                                       poseEstimates[scanNum-1][1],
-                                                       poseEstimates[scanNum-1][2],
-                                                       poseEstimates[scanNum-1][3],
-                                                       poseEstimates[scanNum-1][4],
-                                                       poseEstimates[scanNum-1][5]).inverse() *
-                                           homogeneous(poseEstimates[scanNum][0],
-                                                       poseEstimates[scanNum][1],
-                                                       poseEstimates[scanNum][2],
-                                                       poseEstimates[scanNum][3],
-                                                       poseEstimates[scanNum][4],
-                                                       poseEstimates[scanNum][5])));
+            seedConstVel = hom2rpyxyz(homogeneous(poseEstimates[scanNum][0],
+                                                  poseEstimates[scanNum][1],
+                                                  poseEstimates[scanNum][2],
+                                                  poseEstimates[scanNum][3],
+                                                  poseEstimates[scanNum][4],
+                                                  poseEstimates[scanNum][5])*
+                                     (homogeneous(poseEstimates[scanNum-1][0],
+                                                  poseEstimates[scanNum-1][1],
+                                                  poseEstimates[scanNum-1][2],
+                                                  poseEstimates[scanNum-1][3],
+                                                  poseEstimates[scanNum-1][4],
+                                                  poseEstimates[scanNum-1][5]).inverse() *
+                                      homogeneous(poseEstimates[scanNum][0],
+                                                  poseEstimates[scanNum][1],
+                                                  poseEstimates[scanNum][2],
+                                                  poseEstimates[scanNum][3],
+                                                  poseEstimates[scanNum][4],
+                                                  poseEstimates[scanNum][5])));
         }
         
         // --------------------------------------------------------------------
         // STEP 3: UPDATE THE LOCAL MAP
         // --------------------------------------------------------------------
-        // transform the current scan to the pose estimates
-        auto startLocalMapUpdate = std::chrono::high_resolution_clock::now();
-        
-        Eigen::MatrixXd currentScanMultiply;
-        int currentScanSize = targetScan.x.size();
-
-        currentScanMultiply.resize(4,currentScanSize);
-        currentScanMultiply.row(0) = Eigen::Map<Eigen::RowVectorXd>(targetScan.x.data(),currentScanSize);
-        currentScanMultiply.row(1) = Eigen::Map<Eigen::RowVectorXd>(targetScan.y.data(),currentScanSize);
-        currentScanMultiply.row(2) = Eigen::Map<Eigen::RowVectorXd>(targetScan.z.data(),currentScanSize);
-        currentScanMultiply.row(3) = Eigen::VectorXd::Ones(currentScanSize);
-
+        // transform the current scan to the current pose estimate
+        int currentScanSize = ptsSubsampled.rows();
         Eigen::Matrix4d hypothesis = homogeneous(poseEstimates[scanNum][0],
                                                  poseEstimates[scanNum][1],
                                                  poseEstimates[scanNum][2],
                                                  poseEstimates[scanNum][3],
                                                  poseEstimates[scanNum][4],
                                                  poseEstimates[scanNum][5]);
+        Eigen::MatrixXd currentScanTransformed = hypothesis * ptsSubsampled.transpose();
 
-        scan currentScanTransformedScan;
-        currentScanTransformedScan.x.resize(currentScanSize);
-        currentScanTransformedScan.y.resize(currentScanSize);
-        currentScanTransformedScan.z.resize(currentScanSize);
-        Eigen::MatrixXd currentScanTransformed = hypothesis * currentScanMultiply;
-        Eigen::VectorXd::Map(&currentScanTransformedScan.x[0],currentScanSize) = currentScanTransformed.row(0);
-        Eigen::VectorXd::Map(&currentScanTransformedScan.y[0],currentScanSize) = currentScanTransformed.row(1);
-        Eigen::VectorXd::Map(&currentScanTransformedScan.z[0],currentScanSize) = currentScanTransformed.row(2);
+        // add the transformed scan to the previous submap
+        Eigen::MatrixXd subMapToUpdate(subMap.rows()+ptsSubsampled.rows(),4);
+        subMapToUpdate << subMap,currentScanTransformed.transpose();
 
-        // add the scan to the map
-        // loop through every point in the input scan
-        for (unsigned int j = 0; j < currentScanSize; j++)
+        std::set<int> allPointsSubMap;
+        int counter = 0;
+        for (unsigned int i = 0; i < subMapToUpdate.rows(); i++)
         {
-            std::vector<double> point = {currentScanTransformedScan.x[j],
-                                         currentScanTransformedScan.y[j],
-                                         currentScanTransformedScan.z[j]};
-            for (unsigned int k = 0; k < subMap.x.size(); k++)
-            {
-                addPoint = true;
-                if (sqrt(pow(point[0]-subMap.x[k],2) + 
-                     pow(point[1]-subMap.y[k],2) + 
-                     pow(point[2]-subMap.z[k],2)) < config.rMap)
-                    {        
-                        addPoint = false;
-                        break;
-                    }
-            }
+            // CAN WE DO THE MAX RANGE HERE?
+            allPointsSubMap.insert(counter);
+            counter++;
+        } 
+        Eigen::MatrixXd subMapUpdated = subsample(config.rMap, allPointsSubMap, subMapToUpdate);
 
-            if (addPoint)
-            {
-                subMap.x.push_back(point[0]);
-                subMap.y.push_back(point[1]);
-                subMap.z.push_back(point[2]);
-            }
-        }
-
-        // remove points outside the maximum laser range
-        scan subMapNew;
-        
-        for (unsigned int k = 0; k < subMap.x.size(); k++)
+        // remove points outside rMax
+        Eigen::MatrixXd subMapInMaxRange(subMapUpdated.rows(),subMapUpdated.cols());
+        counter = 0;
+        for (unsigned int k = 0; k < subMapUpdated.rows(); k++)
         {
-            if (pow(subMap.x[k]-poseEstimates[scanNum][3],2) + 
-                pow(subMap.y[k]-poseEstimates[scanNum][4],2) < pow(config.maxSensorRange,2))
+            if ((pow(subMapUpdated(k,0)-poseEstimates[scanNum][3],2) + 
+                 pow(subMapUpdated(k,1)-poseEstimates[scanNum][4],2) + 
+                 pow(subMapUpdated(k,2)-poseEstimates[scanNum][5],2)) < pow(config.maxSensorRange,2))
                 {
-                    subMapNew.x.push_back(subMap.x[k]);
-                    subMapNew.y.push_back(subMap.y[k]);
-                    subMapNew.z.push_back(subMap.z[k]);
+                    subMapInMaxRange.row(counter) << subMapUpdated(k,0),subMapUpdated(k,1),subMapUpdated(k,2),1;
+                    counter++;
                 }
         }
- 
-        subMap = subMapNew;
+
+        // overwrite the submap for the next registration result
+        subMap.resize(counter,4);
+        subMap = subMapInMaxRange.topRows(counter);
+        // print the progress to the terminal
+        // comment printProgress to remove this 
         printProgress((double(scanNum)/numScans));
+        
     }
     printf("\n"); // end with a new line character for the progress bar
 
