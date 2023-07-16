@@ -8,12 +8,6 @@ int main(int argc, char* argv[])
     params config;
     int err = parseArgs(&config, argc, argv);
     if (err) exit(1);
-    
-    // construct the scoring matrix used in the objective function 
-    Eigen::Matrix3d uncertainty;
-    uncertainty << pow(config.sigma,-2),0,0,
-                   0,pow(config.sigma,-2),0,
-                   0,0,pow(config.sigma,-2);
 
     // ------------------------------------------------------------------------
     // LOAD THE SCANS PATHS
@@ -80,16 +74,12 @@ int main(int argc, char* argv[])
             my_kd_tree_t *subMapKdTree = new my_kd_tree_t(3,subMapNanoflann,{10});
 
             // instantiate the objective function
-            ObjectiveFunction objFuncFine = ObjectiveFunction(uncertainty,ptsSubsampled,
+            ObjectiveFunction objFuncFine = ObjectiveFunction(pow(config.sigma,-2)/2,ptsSubsampled,
                                                               subMapNanoflann, subMapKdTree);
 
             // use the previous pose estimate as the seed
-            column_vector regResult = {seedConstVel[0],
-                                       seedConstVel[1],
-                                       seedConstVel[2],
-                                       seedConstVel[3],
-                                       seedConstVel[4],
-                                       seedConstVel[5]};
+            column_vector regResult = {seedConstVel[0], seedConstVel[1], seedConstVel[2],
+                                       seedConstVel[3], seedConstVel[4], seedConstVel[5]};
 
             // find the best solution to the objective function
             double registrationScore = dlib::find_min_using_approximate_derivatives(
@@ -99,33 +89,19 @@ int main(int argc, char* argv[])
             delete subMapKdTree; // free memory
             
             // save the results
-            poseEstimates[scanNum] = {regResult(0),
-                                      regResult(1),
-                                      regResult(2),
-                                      regResult(3),
-                                      regResult(4),
-                                      regResult(5),
-                                      registrationScore};
+            poseEstimates[scanNum] = {regResult(0), regResult(1), regResult(2),
+                                      regResult(3), regResult(4), regResult(5), registrationScore};
 
             // calculate the seed for the next pose estimate using the constant velocity mdoel
-            seedConstVel = hom2rpyxyz(homogeneous(poseEstimates[scanNum][0],
-                                                  poseEstimates[scanNum][1],
-                                                  poseEstimates[scanNum][2],
-                                                  poseEstimates[scanNum][3],
-                                                  poseEstimates[scanNum][4],
-                                                  poseEstimates[scanNum][5])*
-                                     (homogeneous(poseEstimates[scanNum-1][0],
-                                                  poseEstimates[scanNum-1][1],
-                                                  poseEstimates[scanNum-1][2],
-                                                  poseEstimates[scanNum-1][3],
-                                                  poseEstimates[scanNum-1][4],
-                                                  poseEstimates[scanNum-1][5]).inverse() *
-                                      homogeneous(poseEstimates[scanNum][0],
-                                                  poseEstimates[scanNum][1],
-                                                  poseEstimates[scanNum][2],
-                                                  poseEstimates[scanNum][3],
-                                                  poseEstimates[scanNum][4],
-                                                  poseEstimates[scanNum][5])));
+            seedConstVel = hom2rpyxyz(homogeneous(poseEstimates[scanNum][0], poseEstimates[scanNum][1],
+                                                  poseEstimates[scanNum][2], poseEstimates[scanNum][3],
+                                                  poseEstimates[scanNum][4], poseEstimates[scanNum][5])*
+                                     (homogeneous(poseEstimates[scanNum-1][0], poseEstimates[scanNum-1][1],
+                                                  poseEstimates[scanNum-1][2], poseEstimates[scanNum-1][3],
+                                                  poseEstimates[scanNum-1][4], poseEstimates[scanNum-1][5]).inverse() *
+                                      homogeneous(poseEstimates[scanNum][0], poseEstimates[scanNum][1],
+                                                  poseEstimates[scanNum][2], poseEstimates[scanNum][3],
+                                                  poseEstimates[scanNum][4], poseEstimates[scanNum][5])));
         }
         
         // --------------------------------------------------------------------
@@ -133,12 +109,9 @@ int main(int argc, char* argv[])
         // --------------------------------------------------------------------
         // transform the current scan to the current pose estimate
         int currentScanSize = ptsSubsampled.rows();
-        Eigen::Matrix4d hypothesis = homogeneous(poseEstimates[scanNum][0],
-                                                 poseEstimates[scanNum][1],
-                                                 poseEstimates[scanNum][2],
-                                                 poseEstimates[scanNum][3],
-                                                 poseEstimates[scanNum][4],
-                                                 poseEstimates[scanNum][5]);
+        Eigen::Matrix4d hypothesis = homogeneous(poseEstimates[scanNum][0], poseEstimates[scanNum][1],
+                                                 poseEstimates[scanNum][2], poseEstimates[scanNum][3],
+                                                 poseEstimates[scanNum][4], poseEstimates[scanNum][5]);
         Eigen::MatrixXd currentScanTransformed = hypothesis * ptsSubsampled.transpose();
 
         // add the transformed scan to the previous submap

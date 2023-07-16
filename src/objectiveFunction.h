@@ -12,7 +12,7 @@
 class ObjectiveFunction
 {
     private:
-        Eigen::Matrix3d uncertainty_;   // registration parameter
+        double sigma_;   // registration parameter
         Eigen::MatrixXd scan_;          // target scan
         int scanSize_;                  // length of the output scan
         PointCloud<double> sourceScan_; // create a point cloud object for the kd tree
@@ -28,8 +28,9 @@ class ObjectiveFunction
          * @param subMap            The current subMap.
          * @param sourceScanKdTree  A KdTree of the subMap.
          */
-        ObjectiveFunction(Eigen::Matrix3d uncertainty, Eigen::MatrixXd scan,
-                                             PointCloud<double> subMap,  my_kd_tree_t *sourceScanKdTree);
+
+        ObjectiveFunction(double sigma, Eigen::MatrixXd scan,
+                          PointCloud<double> subMap,  my_kd_tree_t *sourceScanKdTree);
 
         // overload function call operator
 
