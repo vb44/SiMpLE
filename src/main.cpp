@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
         scanFiles.push_back(dir_entry.path());
 
     // sort the scans in order of the file name
-    std::sort(scanFiles.begin(),scanFiles.end(),compareStrings);
+    std::sort(scanFiles.begin(), scanFiles.end(), compareStrings);
 
     // number of scans
     unsigned int numScans = scanFiles.size();
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
     std::vector<std::vector<double> > poseEstimates(numScans,std::vector<double>(7));
     
     // seed for the optimisation solver
-    std::vector<double> seedConstVel = {0.0,0.0,0.0,0.0,0.0,0.0};
+    std::vector<double> seedConstVel = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     // start the timer
     auto startReg = std::chrono::high_resolution_clock::now();
@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
         // apply the calibration factor as explained in IMLS-SLAM, CT-ICP, and KISS-ICP
         // comment the next line if it is not the Kitti dataset and uncomment
         // the following line
-        Eigen::MatrixXd ptsCorrected = correctKittiScan(ptsInRange);    // comment out for not Kitti
-        // Eigen::MatrixXd ptsCorrected = ptsInRange;                   // uncomment for not Kitti       
+        // Eigen::MatrixXd ptsCorrected = correctKittiScan(ptsInRange);    // comment out for not Kitti
+        Eigen::MatrixXd ptsCorrected = ptsInRange;                   // uncomment for not Kitti       
         
         // --------------------------------------------------------------------
         // STEP 1: SUBSAMPLE THE INPUT POINT CLOUD AT rNew
@@ -70,12 +70,12 @@ int main(int argc, char* argv[])
         {
             // construct a kd tree for the registration process
             // (dimension, scan, max leaf)
-            convertToPointCloud3D(subMapNanoflann,subMap);
-            my_kd_tree_t *subMapKdTree = new my_kd_tree_t(3,subMapNanoflann,{10});
+            convertToPointCloud3D(subMapNanoflann, subMap);
+            my_kd_tree_t *subMapKdTree = new my_kd_tree_t(3, subMapNanoflann, {10});
 
             // instantiate the objective function
-            ObjectiveFunction objFuncFine = ObjectiveFunction(pow(config.sigma,-2)/2,ptsSubsampled,
-                                                              subMapNanoflann, subMapKdTree);
+            double rewardParam = pow(config.sigma,-2)/2; // this value is constant for scoring
+            ObjectiveFunction objFunc = ObjectiveFunction(rewardParam, ptsSubsampled, subMapKdTree);
 
             // use the previous pose estimate as the seed
             column_vector regResult = {seedConstVel[0], seedConstVel[1], seedConstVel[2],
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
             double registrationScore = dlib::find_min_using_approximate_derivatives(
                                        dlib::bfgs_search_strategy(),
                                        dlib::objective_delta_stop_strategy(config.convergenceTol),
-                                       objFuncFine, regResult, -10000000);
+                                       objFunc, regResult, -10000000);
             delete subMapKdTree; // free memory
             
             // save the results
@@ -115,8 +115,8 @@ int main(int argc, char* argv[])
         Eigen::MatrixXd currentScanTransformed = hypothesis * ptsSubsampled.transpose();
 
         // add the transformed scan to the previous submap
-        Eigen::MatrixXd subMapToUpdate(subMap.rows()+ptsSubsampled.rows(),4);
-        subMapToUpdate << subMap,currentScanTransformed.transpose();
+        Eigen::MatrixXd subMapToUpdate(subMap.rows() + ptsSubsampled.rows(), 4);
+        subMapToUpdate << subMap, currentScanTransformed.transpose();
 
         std::set<int> allPointsSubMap;
         int counter = 0;
@@ -129,33 +129,33 @@ int main(int argc, char* argv[])
         Eigen::MatrixXd subMapUpdated = subsample(config.rMap, allPointsSubMap, subMapToUpdate);
 
         // remove points outside rMax
-        Eigen::MatrixXd subMapInMaxRange(subMapUpdated.rows(),subMapUpdated.cols());
+        Eigen::MatrixXd subMapInMaxRange(subMapUpdated.rows(), subMapUpdated.cols());
         counter = 0;
         for (unsigned int k = 0; k < subMapUpdated.rows(); k++)
         {
-            if ((pow(subMapUpdated(k,0)-poseEstimates[scanNum][3],2) + 
-                 pow(subMapUpdated(k,1)-poseEstimates[scanNum][4],2) + 
-                 pow(subMapUpdated(k,2)-poseEstimates[scanNum][5],2)) < pow(config.maxSensorRange,2))
+            if ((pow(subMapUpdated(k,0) - poseEstimates[scanNum][3],2) + 
+                 pow(subMapUpdated(k,1) - poseEstimates[scanNum][4],2) + 
+                 pow(subMapUpdated(k,2) - poseEstimates[scanNum][5],2)) < pow(config.maxSensorRange,2))
                 {
-                    subMapInMaxRange.row(counter) << subMapUpdated(k,0),subMapUpdated(k,1),subMapUpdated(k,2),1;
+                    subMapInMaxRange.row(counter) << subMapUpdated(k,0), subMapUpdated(k,1), subMapUpdated(k,2), 1;
                     counter++;
                 }
         }
 
         // overwrite the submap for the next registration result
-        subMap.resize(counter,4);
+        subMap.resize(counter, 4);
         subMap = subMapInMaxRange.topRows(counter);
         // print the progress to the terminal
         // comment printProgress to remove this 
-        printProgress((double(scanNum)/numScans));
+        printProgress((double(scanNum) / numScans));
         
     }
     printf("\n"); // end with a new line character for the progress bar
 
     // calculate the average time per registration result
     auto stopReg = std::chrono::high_resolution_clock::now();
-    auto durationReg = std::chrono::duration_cast<std::chrono::milliseconds>(stopReg-startReg);
-    double avgTimePerScan = durationReg.count()/numScans;
+    auto durationReg = std::chrono::duration_cast<std::chrono::milliseconds>(stopReg - startReg);
+    double avgTimePerScan = durationReg.count() / numScans;
 
     // ------------------------------------------------------------------------
     // OUTPUT RESULTS

@@ -33,7 +33,7 @@ using my_kd_tree_t = const nanoflann::KDTreeSingleIndexAdaptor<
 /**
  * @brief A column vector used to interface with the Dlib library.
  */
-typedef dlib::matrix<double,0,1> column_vector;
+typedef dlib::matrix<double, 0, 1> column_vector;
 
 /**
  * @brief A container to store all the configuration parameters and settings.

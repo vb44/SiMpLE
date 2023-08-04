@@ -86,17 +86,17 @@ Eigen::Matrix4d homogeneous(double roll, double pitch, double yaw,
     Eigen::Matrix4d T;
     T.setZero();
 
-    T(0,0) = cos(yaw)*cos(pitch);
-    T(0,1) = cos(yaw)*sin(pitch)*sin(roll)-sin(yaw)*cos(roll);
-    T(0,2) = cos(yaw)*sin(pitch)*cos(roll)+sin(yaw)*sin(roll);
+    T(0,0) = cos(yaw) * cos(pitch);
+    T(0,1) = cos(yaw) * sin(pitch) * sin(roll) - sin(yaw) * cos(roll);
+    T(0,2) = cos(yaw) * sin(pitch) * cos(roll) + sin(yaw) * sin(roll);
     T(0,3) = x;
-    T(1,0) = sin(yaw)*cos(pitch);
-    T(1,1) = sin(yaw)*sin(pitch)*sin(roll)+cos(yaw)*cos(roll);
-    T(1,2) = sin(yaw)*sin(pitch)*cos(roll)-cos(yaw)*sin(roll);
+    T(1,0) = sin(yaw) * cos(pitch);
+    T(1,1) = sin(yaw) * sin(pitch) * sin(roll) + cos(yaw) * cos(roll);
+    T(1,2) = sin(yaw) * sin(pitch) * cos(roll) - cos(yaw) * sin(roll);
     T(1,3) = y;
     T(2,0) = -sin(pitch);
-    T(2,1) = cos(pitch)*sin(roll);
-    T(2,2) = cos(pitch)*cos(roll);
+    T(2,1) = cos(pitch) * sin(roll);
+    T(2,2) = cos(pitch) * cos(roll);
     T(2,3) = z;
     T(3,3) = 1;
 
@@ -105,13 +105,13 @@ Eigen::Matrix4d homogeneous(double roll, double pitch, double yaw,
 
 std::vector<double> hom2rpyxyz(Eigen::Matrix4d T)
 {
-    double ROLL = atan2(T(2,1),T(2,2));
+    double ROLL = atan2(T(2,1), T(2,2));
     double PITCH = asin(-T(2,0));
-    double YAW = atan2(T(1,0),T(0,0));
+    double YAW = atan2(T(1,0), T(0,0));
     double X = T(0,3);
     double Y = T(1,3);
     double Z = T(2,3);
-    std::vector<double> result = {ROLL,PITCH,YAW,X,Y,Z};
+    std::vector<double> result = {ROLL, PITCH, YAW, X, Y, Z};
     return result;
 }
 
@@ -122,9 +122,9 @@ void convertToPointCloud3D(PointCloud<double>& pc, Eigen::MatrixXd scan)
 
     for (size_t i = 0; i < pcLength; i++)
     {
-        pc.pts[i].x = scan(i,0);
-        pc.pts[i].y = scan(i,1);
-        pc.pts[i].z = scan(i,2);
+        pc.pts[i].x = scan(i, 0);
+        pc.pts[i].y = scan(i, 1);
+        pc.pts[i].z = scan(i, 2);
         
     } 
 }
@@ -134,8 +134,8 @@ bool compareStrings(std::string a, std::string b)
     std::string delimiterStart = "/";
     std::string delimiterEnd = ".bin";
     
-    std::string aNum = a.substr(a.find_last_of(delimiterStart)+delimiterStart.size(),a.size());
-    std::string bNum = b.substr(b.find_last_of(delimiterStart)+delimiterStart.size(),b.size());
+    std::string aNum = a.substr(a.find_last_of(delimiterStart)+delimiterStart.size(), a.size());
+    std::string bNum = b.substr(b.find_last_of(delimiterStart)+delimiterStart.size(), b.size());
     aNum = aNum.substr(0, aNum.find(delimiterEnd));
     bNum = bNum.substr(0, bNum.find(delimiterEnd));
 
@@ -157,7 +157,7 @@ Eigen::MatrixXd subsample(double subsampleRadius, std::set<int> allPoints, Eigen
     for (unsigned int i : allPoints)
     {
         std::vector<nanoflann::ResultItem<uint32_t, double>> ret_matches;
-        const double query_pt[3] = {scan.coeffRef(i,0),scan.coeffRef(i,1),scan.coeffRef(i,2)};
+        const double query_pt[3] = {scan.coeffRef(i,0), scan.coeffRef(i,1), scan.coeffRef(i,2)};
         const size_t nMatches = scanKdTree->radiusSearch(&query_pt[0], subsampleRadius, ret_matches);
         for (unsigned int j = 0; j < nMatches; j++)
         {
@@ -166,7 +166,7 @@ Eigen::MatrixXd subsample(double subsampleRadius, std::set<int> allPoints, Eigen
                 allPoints.erase(ret_matches[j].first);
             }
         }
-        scanSubsampled.row(counter) << scan.coeffRef(i,0),scan.coeffRef(i,1),scan.coeffRef(i,2),1;
+        scanSubsampled.row(counter) << scan.coeffRef(i,0), scan.coeffRef(i,1), scan.coeffRef(i,2), 1;
         counter++;
     }
     delete scanKdTree; // free memory
@@ -241,14 +241,14 @@ Eigen::MatrixXd correctKittiScan(Eigen::MatrixXd scan) {
 
     constexpr double VERTICAL_ANGLE_OFFSET = (0.205 * M_PI) / 180.0;
 
-    Eigen::MatrixXd corrected_frame(scan.rows(),scan.cols());
+    Eigen::MatrixXd corrected_frame(scan.rows(), scan.cols());
     for(unsigned int i = 0; i < scan.rows(); i++) {
         Eigen::Vector3d pt;
         Eigen::Vector3d ptCorrected;
-        pt << scan(i,0),scan(i,1),scan(i,2);
-        const Eigen::Vector3d rotationVector = pt.cross(Eigen::Vector3d(0., 0., 1.));
+        pt << scan(i,0), scan(i,1), scan(i,2);
+        const Eigen::Vector3d rotationVector = pt.cross(Eigen::Vector3d(0.0, 0.0, 1.0));
         ptCorrected = Eigen::AngleAxisd(VERTICAL_ANGLE_OFFSET, rotationVector.normalized()) * pt;
-        corrected_frame.row(i) << ptCorrected(0),ptCorrected(1),ptCorrected(2),1;
+        corrected_frame.row(i) << ptCorrected(0), ptCorrected(1), ptCorrected(2), 1;
     }
     return corrected_frame;
 }
@@ -267,16 +267,16 @@ Eigen::MatrixXd readScan(std::string fileName, params &config, std::set<int> &al
     while (file.read((char*)&item, sizeof(item)))
         ptsFromFile.push_back(item);
 
-    unsigned int numPts = ptsFromFile.size()/4;
-    ptsRead.resize(numPts,4);
+    unsigned int numPts = ptsFromFile.size() / 4;
+    ptsRead.resize(numPts, 4);
  
     for (unsigned int i = 0; i < ptsFromFile.size(); i+=4)
     {
         // save the pt if it is within the maximum and mininmum sensor ranges
-        double normSquared = pow(ptsFromFile[i],2)+pow(ptsFromFile[i+1],2)+pow(ptsFromFile[i+2],2); 
-        if ((normSquared > pow(config.minSensorRange,2)) && (normSquared < pow(config.maxSensorRange,2)))
+        double normSquared = pow(ptsFromFile[i], 2)+pow(ptsFromFile[i+1], 2)+pow(ptsFromFile[i+2], 2); 
+        if ((normSquared > pow(config.minSensorRange, 2)) && (normSquared < pow(config.maxSensorRange, 2)))
         {
-            ptsRead.row(counter) << ptsFromFile[i],ptsFromFile[i+1],ptsFromFile[i+2],1;
+            ptsRead.row(counter) << ptsFromFile[i], ptsFromFile[i+1], ptsFromFile[i+2], 1;
             allPoints.insert(counter); // save the pt index for subsampling
             counter++;
         }

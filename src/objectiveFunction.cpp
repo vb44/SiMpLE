@@ -1,11 +1,10 @@
 #include "objectiveFunction.h"
 
 ObjectiveFunction::ObjectiveFunction(double sigma, Eigen::MatrixXd scan,
-                    PointCloud<double> subMap,  my_kd_tree_t *sourceScanKdTree) 
+                                     my_kd_tree_t *sourceScanKdTree) 
 {
     sigma_ = sigma;
     scan_ = scan;
-    sourceScan_ = subMap;
     scanSize_ = scan.rows();
     subMapKdTree_ = sourceScanKdTree;
 }
@@ -13,7 +12,7 @@ ObjectiveFunction::ObjectiveFunction(double sigma, Eigen::MatrixXd scan,
 double ObjectiveFunction::operator()(const column_vector& m) const
 {
     // transformation hypothesis from the new scan to the local map
-    Eigen::Matrix4d hypothesis = homogeneous(m(0),m(1),m(2),m(3),m(4),m(5));
+    Eigen::Matrix4d hypothesis = homogeneous(m(0), m(1), m(2), m(3), m(4), m(5));
 
     
     // transform the new scan using the transformation hypothesis            
@@ -21,12 +20,12 @@ double ObjectiveFunction::operator()(const column_vector& m) const
     
     // set the score to zero
     double score = 0;
-    std::vector<double> scores(scanTransformed_.cols(),0.0);
+    std::vector<double> scores(scanTransformed_.cols(), 0.0);
     size_t numResults = 1;
     // calculate the hypothesis reward 
     // loop through each transformed target scan and find the closest point in the source scan
     tbb::parallel_for(
-    tbb::blocked_range<int>(0,scanTransformed_.cols()),
+    tbb::blocked_range<int>(0, scanTransformed_.cols()),
     [&](tbb::blocked_range<int> r)
     {
         for (unsigned int i = r.begin(); i < r.end(); i++)
@@ -41,10 +40,10 @@ double ObjectiveFunction::operator()(const column_vector& m) const
             query_pt[2] = scanTransformed_.coeffRef(2,i);
             
             // search for the closest point
-            subMapKdTree_->knnSearch(&query_pt[0],numResults,&retIndex,&outDistSqr);
+            subMapKdTree_->knnSearch(&query_pt[0], numResults, &retIndex, &outDistSqr);
 
             // score the difference between the current and nearest point
-            scores[i] = exp(-outDistSqr*sigma_);
+            scores[i] = exp(-outDistSqr * sigma_);
         }
     });
 
