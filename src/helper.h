@@ -47,6 +47,7 @@ struct params {
     double minSensorRange;      // optional: for computational benfit only, set to zero otherwise
     std::string outputFileName; // output file name
     bool verbose = false;       // print the test settings
+    bool kitti = false;         // the KITTI scans need to be corrected
 };
 
 /**

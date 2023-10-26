@@ -53,11 +53,15 @@ int main(int argc, char* argv[])
         // CORRECT THE SCAN - KITTI ONLY
         // --------------------------------------------------------------------
         // apply the calibration factor as explained in IMLS-SLAM, CT-ICP, and KISS-ICP
-        // comment the next line if it is not the Kitti dataset and uncomment
-        // the following line
-        // Eigen::MatrixXd ptsCorrected = correctKittiScan(ptsInRange);    // comment out for not Kitti
-        Eigen::MatrixXd ptsCorrected = ptsInRange;                   // uncomment for not Kitti       
-        
+        Eigen::MatrixXd ptsCorrected;
+        if (config.kitti)
+        {
+            ptsCorrected = correctKittiScan(ptsInRange);    // fix the Kitti scans
+        } else
+        {
+            ptsCorrected = ptsInRange;       
+        }
+
         // --------------------------------------------------------------------
         // STEP 1: SUBSAMPLE THE INPUT POINT CLOUD AT rNew
         // --------------------------------------------------------------------

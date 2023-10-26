@@ -3,7 +3,7 @@
 int parseArgs(params* config, int argc, char* argv[])
 {
     // check the number of arguments
-    if (argc < 16 || argc > 18)
+    if (argc < 16 || argc > 20)
     {
         std::cerr << "SiMpLE usage:"                                << std::endl <<
                      "./simple "                                    << std::endl <<
@@ -15,6 +15,7 @@ int parseArgs(params* config, int argc, char* argv[])
                      "--maxSensorRange          \"radius [m]\" "    << std::endl <<
                      "--minSensorRange          \"radius [m]\" "    << std::endl <<
                      "--outputFileName          \"fileName\" "      << std::endl <<
+                     "--kitti (optional)"                           << std::endl <<
                      "--verbose (optional)"                         << std::endl;
         return 1;
     }
@@ -53,6 +54,10 @@ int parseArgs(params* config, int argc, char* argv[])
         if (strcmp(argv[i],"--outputFileName") == 0)
         {
             config->outputFileName = argv[i+1];        
+        }
+        if (strcmp(argv[i],"--kitti") == 0)
+        {
+            config->kitti = true;        
         }
         if (strcmp(argv[i],"--verbose") == 0)
         {
