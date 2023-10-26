@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(SiMpLE)
 
 add_compile_options(-std=c++17 -O3)
+set(CMAKE_CXX_STANDARD 17)
 
 # find required packages
 find_package(nanoflann REQUIRED)
