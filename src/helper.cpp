@@ -237,8 +237,6 @@ void printProgress(double percentage) {
 Eigen::MatrixXd correctKittiScan(Eigen::MatrixXd scan) {
 
     // Adapted from KISS-ICP opensource code
-    // TODO: add CPU parallelising to this
-
     constexpr double VERTICAL_ANGLE_OFFSET = (0.205 * M_PI) / 180.0;
 
     Eigen::MatrixXd corrected_frame(scan.rows(), scan.cols());

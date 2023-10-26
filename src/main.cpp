@@ -122,7 +122,6 @@ int main(int argc, char* argv[])
         int counter = 0;
         for (unsigned int i = 0; i < subMapToUpdate.rows(); i++)
         {
-            // CAN WE DO THE MAX RANGE HERE?
             allPointsSubMap.insert(counter);
             counter++;
         } 

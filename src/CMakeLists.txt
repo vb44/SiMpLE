@@ -8,6 +8,7 @@ add_compile_options(-std=c++17 -O3)
 find_package(nanoflann REQUIRED)
 find_package(TBB REQUIRED)
 find_package(dlib REQUIRED)
+find_package(Threads REQUIRED)
 
 
 # add an executable called simple

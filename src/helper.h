@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <dlib/optimization.h>
-#include <dlib/global_optimization.h>
 #include <eigen3/Eigen/Dense>
 #include <filesystem>
 #include <fstream>
