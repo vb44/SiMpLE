@@ -2,6 +2,7 @@
 
 int parseArgs(params* config, int argc, char* argv[])
 {
+    // TODO: Add error checking.
     // check the number of arguments
     if (argc < 16 || argc > 20)
     {
@@ -129,8 +130,7 @@ void convertToPointCloud3D(PointCloud<double>& pc, Eigen::MatrixXd scan)
     {
         pc.pts[i].x = scan(i, 0);
         pc.pts[i].y = scan(i, 1);
-        pc.pts[i].z = scan(i, 2);
-        
+        pc.pts[i].z = scan(i, 2);        
     } 
 }
 

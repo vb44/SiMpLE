@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
     if (err) exit(1);
 
     // ------------------------------------------------------------------------
-    // LOAD THE SCANS PATHS
+    // LOAD THE SCAN PATHS
     // ------------------------------------------------------------------------
     std::vector<std::string> scanFiles;
     for (auto const& dir_entry : std::filesystem::directory_iterator(config.path)) 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         } 
         Eigen::MatrixXd subMapUpdated = subsample(config.rMap, allPointsSubMap, subMapToUpdate);
 
-        // remove points outside rMax
+        // remove points outside rMax to limit the size of the map
         Eigen::MatrixXd subMapInMaxRange(subMapUpdated.rows(), subMapUpdated.cols());
         counter = 0;
         for (unsigned int k = 0; k < subMapUpdated.rows(); k++)

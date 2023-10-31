@@ -11,7 +11,6 @@ find_package(TBB REQUIRED)
 find_package(dlib REQUIRED)
 find_package(Threads REQUIRED)
 
-
 # add an executable called simple
 add_executable(simple main.cpp helper.cpp objectiveFunction.cpp)
 

@@ -13,8 +13,7 @@ double ObjectiveFunction::operator()(const column_vector& m) const
 {
     // transformation hypothesis from the new scan to the local map
     Eigen::Matrix4d hypothesis = homogeneous(m(0), m(1), m(2), m(3), m(4), m(5));
-
-    
+ 
     // transform the new scan using the transformation hypothesis            
     Eigen::MatrixXd scanTransformed_ = hypothesis * scan_.transpose();
     
@@ -22,6 +21,7 @@ double ObjectiveFunction::operator()(const column_vector& m) const
     double score = 0;
     std::vector<double> scores(scanTransformed_.cols(), 0.0);
     size_t numResults = 1;
+
     // calculate the hypothesis reward 
     // loop through each transformed target scan and find the closest point in the source scan
     tbb::parallel_for(
@@ -30,8 +30,6 @@ double ObjectiveFunction::operator()(const column_vector& m) const
     {
         for (unsigned int i = r.begin(); i < r.end(); i++)
         {
-
-           
             uint32_t retIndex;
             double outDistSqr;
             double query_pt[3];

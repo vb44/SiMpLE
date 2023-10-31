@@ -26,16 +26,16 @@ The method has four configuration parameters.
 3. ***&sigma;*** is the standard deviation of the Gaussian reward function - see the paper for more details.
 4. ***&epsilon;*** is the convergence tolerance of the optimisation solver. 
 
-There are two more optional settings:
+There are two more settings:
 1. ***rMax*** is the maximum radius of the point cloud. This is hardware-dependent and not a configuration parameter.
-2. ***rMin*** is for computational benefit only. The default value is zero where it has no effect. Increasing this value eliminates the rings commonly formed around the sensor to reduce the size of the point cloud without losing geometric information. 
+2. ***rMin*** is optional and for computational benefit only. The default value is zero where it has no effect. Increasing this value eliminates the rings commonly formed around the sensor to reduce the size of the point cloud without losing geometric information. 
 
 ## Hardware and Dependencies
-This implementation has been tested on Ubuntu 20.04.5 LTS (Focal Fossa) with an Intel Core i7-10700K CPU @ 3.80GHz x 16 and 62.5 GiB memory.
+This implementation has been tested on Ubuntu 20.04.5/6 LTS (Focal Fossa) and Ubuntu 22.04.3 (Jammy Jellyfish) with an Intel Core i7-10700K CPU @ 3.80GHz x 16 and 62.5 GiB memory.
 SiMpLE uses a few open-source libraries for Kd-Trees, matrix operations, optimisation functions, and CPU threading.
 The installation instructions are detailed below.
 
-* Git is required to download opensource libraries.
+* Git is required to download the open-source libraries.
 ```bash
 sudo apt install git
 ```
@@ -55,7 +55,15 @@ sudo apt install libeigen3-dev
 ```bash
 sudo apt install libtbb-dev
 ```
-* Clone and install the nanoflann library for KD-tree operations [2].
+If the SiMpLE repository build in the following section returns an error that it cannot find TBB for CMake, the following installation may help.
+```bash
+git clone https://github.com/oneapi-src/oneTBB
+cd oneTBB
+mkdir build && cd build
+cmake ..
+sudo make install
+```
+* Clone and install the *nanoflann* library for KD-tree operations [2].
 ```bash
 git clone https://github.com/jlblancoc/nanoflann.git
 cd nanoflann
@@ -70,7 +78,6 @@ tar xvf dlib-19.24.tar.bz2
 cd dlib-19.24/
 mkdir build && cd build
 cmake ..
-cmake --build . --config Release
 sudo make install
 ```
 
@@ -122,14 +129,42 @@ Sample use with the KITTI dataset is shown below.\
 ***Note that the --kitti argument is required to correct the scans for the KITTI dataset.*** 
 
 ```bash
-./simple --path KITTI/07/velodyne/ --sigma 1.0 --rMap 2.0 --rNew 1.0 --convergenceTolerance 1e-6 --minSensorRange 0 --maxSensorRange 120 --outputFileName ./results/test_Kitti_07 --kitti
+./simple --path KITTI/07/velodyne/ --sigma 0.3 --rMap 2.0 --rNew 0.35 --convergenceTolerance 1e-4 --minSensorRange 10 --maxSensorRange 80 --outputFileName ./results/test_Kitti_07 --kitti
 ```
-
 ## Sample results interpretation
-An example of interpreting the result file is displayed in *plotResultsMATLAB/interpretResults.m*.
+An example of interpreting the result file in the KITTI format is displayed in *plotResultsMATLAB/interpretResults.m*.
+
+## Sample results and evaluation
+Sample results from the paper are available in the ***sampleResults*** folder for all reported datasets.\
+The estimated trajectories can be evaluated in the *devkit* folder, which is a reduced version of the devkit provided by KITTI.
+
+## Results on different hardware and software versions
+Slight variations were observed when executing the algorithm on different machines.\
+This is caused by the Dlib optimisation library having slight numerical precision differences when searching for the best pose hypothesis.
+* Ubuntu 20.04.5: Desktop with Intel Core i7 (10th gen, 16 cores).
+* Ubuntu 20.04.6: Laptop with Intel Core i7 (8 cores).
+* Ubuntu 22.04.3: Desktop virtual machine with Intel Core i7 (10th gen, 10 cores).
+* Fedora 38     : Laptop with Intel Core i7 (9th gen, 12 cores).
+The KITTI results on different machines are shown below.
+
+|    Sequence | Ubuntu 20.04.5 | Ubuntu 20.04.6 | Ubuntu 22.04.3 | Fedora 38  |
+|------------:|----------------|----------------|----------------|------------|
+|      **00** |     0.7468     |     0.7468     |     0.7473     |   0.7507   |
+|      **01** |     0.6063     |     0.6063     |     0.6062     |   0.6169   |
+|      **02** |     0.6913     |     0.6927     |     0.6914     |   0.6671   |
+|      **03** |     0.7420     |     0.7420     |     0.7420     |   0.7270   |
+|      **04** |     0.3966     |     0.3966     |     0.3966     |   0.3987   |
+|      **05** |     0.3922     |     0.3895     |     0.3873     |   0.3817   |
+|      **06** |     0.2751     |     0.2751     |     0.2751     |   0.2796   |
+|      **07** |     0.5867     |     0.5867     |     0.5867     |   0.5830   |
+|      **08** |     0.8392     |     0.8368     |     0.8392     |   0.8647   |
+|      **09** |     0.6244     |     0.6244     |     0.6244     |   0.5996   |
+|      **10** |     0.7794     |     0.7794     |     0.7680     |   0.8309   |
+| **avg (%)** |   **0.6073**   |   **0.6069**   |   **0.6058**   | **0.6091** |
 
 ## Other datasets
-The UQ dataset scans can be downloaded from https://drive.google.com/drive/folders/1JUdrDOG3lWwZEgmuJvowtxrWuK0s2sZ3?usp=drive_link.
+The UQ dataset scans can be downloaded from https://drive.google.com/drive/folders/1PgECQIySs72Qz-CXhAsAKSq_fRi5S3oA?usp=sharing.
+The folder contains the raw VLP-16 and Livox scans in the KITTI format for comparison with the sensor trajectory results shown in the paper.
 
 ## References
 [1] Eigen library: https://eigen.tuxfamily.org/dox/GettingStarted.html \

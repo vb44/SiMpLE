@@ -32,6 +32,6 @@
 *.app
 
 # Custom
-build/*
-results/*
+build
+results
 .vscode/*
