@@ -1,6 +1,6 @@
 # Evaluating KITTI and MulRan Datasets
 
-The devkit provided here is a simplified version of KITTI's devkit available at https://www.cvlibs.net/datasets/kitti/eval_odometry.php.\
+The devkit provided here is a simplified version of KITTI's devkit available at https://www.cvlibs.net/datasets/kitti/eval_odometry.php.
 The tool takes two inputs, (1) the path to the ground truth file, and (2) the path to the trajectory estimate.\
 The output is the average translational error (%) and the rotational error (deg/100m).
 
