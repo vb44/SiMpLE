@@ -145,6 +145,7 @@ This is caused by the Dlib optimisation library having slight numerical precisio
 * Ubuntu 20.04.6: Laptop with Intel Core i7 (8 cores).
 * Ubuntu 22.04.3: Desktop virtual machine with Intel Core i7 (10th gen, 10 cores).
 * Fedora 38     : Laptop with Intel Core i7 (9th gen, 12 cores).
+
 The KITTI results on different machines are shown below.
 
 |    Sequence | Ubuntu 20.04.5 | Ubuntu 20.04.6 | Ubuntu 22.04.3 | Fedora 38  |
