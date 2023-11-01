@@ -12,7 +12,7 @@
 class ObjectiveFunction
 {
     private:
-        double sigma_;   // registration parameter
+        double sigma_;                  // registration parameter, this is 1/(2*sig^2)
         Eigen::MatrixXd scan_;          // target scan
         int scanSize_;                  // length of the output scan
         my_kd_tree_t *subMapKdTree_;    // submap Kd tree

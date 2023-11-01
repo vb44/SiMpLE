@@ -210,7 +210,7 @@ void writeResults(params* config, std::vector<std::vector<double> > poseEstimate
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 
     // write the config to file
-    std::string outputConfigFileName = outputFileName+"_config.m";
+    std::string outputConfigFileName = outputFileName+"_config";
     std::ofstream outputConfigFile(outputConfigFileName);
     outputConfigFile << "% computation finised at : " << std::ctime(&end_time)
                      << std::endl
@@ -241,7 +241,7 @@ void printProgress(double percentage) {
 
 Eigen::MatrixXd correctKittiScan(Eigen::MatrixXd scan) {
 
-    // Adapted from KISS-ICP opensource code
+    // adapted from KISS-ICP opensource code to correct the KITTI scans
     constexpr double VERTICAL_ANGLE_OFFSET = (0.205 * M_PI) / 180.0;
 
     Eigen::MatrixXd corrected_frame(scan.rows(), scan.cols());

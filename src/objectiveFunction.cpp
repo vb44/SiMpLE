@@ -41,6 +41,7 @@ double ObjectiveFunction::operator()(const column_vector& m) const
             subMapKdTree_->knnSearch(&query_pt[0], numResults, &retIndex, &outDistSqr);
 
             // score the difference between the current and nearest point
+            // Equation 5
             scores[i] = exp(-outDistSqr * sigma_);
         }
     });

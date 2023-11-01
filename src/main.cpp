@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     // store the pose estimates in (roll,pitch,yaw,x,y,z,registrationScore) format
     std::vector<std::vector<double> > poseEstimates(numScans,std::vector<double>(7));
     
-    // seed for the optimisation solver
+    // initial seed for the optimisation solver - start at the origin
     std::vector<double> seedConstVel = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     // start the timer
@@ -75,17 +75,20 @@ int main(int argc, char* argv[])
             // construct a kd tree for the registration process
             // (dimension, scan, max leaf)
             convertToPointCloud3D(subMapNanoflann, subMap);
+
+            // 3 dimension, 10 leaf size (default settings in nanoflann examples)
             my_kd_tree_t *subMapKdTree = new my_kd_tree_t(3, subMapNanoflann, {10});
 
             // instantiate the objective function
-            double rewardParam = pow(config.sigma,-2)/2; // this value is constant for scoring
+            double rewardParam = pow(config.sigma,-2)/2; // this value is constant for scoring in the Gaussian function
             ObjectiveFunction objFunc = ObjectiveFunction(rewardParam, ptsSubsampled, subMapKdTree);
 
             // use the previous pose estimate as the seed
             column_vector regResult = {seedConstVel[0], seedConstVel[1], seedConstVel[2],
                                        seedConstVel[3], seedConstVel[4], seedConstVel[5]};
 
-            // find the best solution to the objective function
+            // find the best solution to the objective function (Equation 2)
+            // the large number (last parameter) is the maximum negative reward required by dlib (never achieved or used).
             double registrationScore = dlib::find_min_using_approximate_derivatives(
                                        dlib::bfgs_search_strategy(),
                                        dlib::objective_delta_stop_strategy(config.convergenceTol),
@@ -96,7 +99,8 @@ int main(int argc, char* argv[])
             poseEstimates[scanNum] = {regResult(0), regResult(1), regResult(2),
                                       regResult(3), regResult(4), regResult(5), registrationScore};
 
-            // calculate the seed for the next pose estimate using the constant velocity mdoel
+            // calculate the seed for the next pose estimate using the constant velocity model
+            // Equation 6
             seedConstVel = hom2rpyxyz(homogeneous(poseEstimates[scanNum][0], poseEstimates[scanNum][1],
                                                   poseEstimates[scanNum][2], poseEstimates[scanNum][3],
                                                   poseEstimates[scanNum][4], poseEstimates[scanNum][5])*
