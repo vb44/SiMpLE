@@ -15,7 +15,7 @@ We have tested the algorithm using LiDARs with various point cloud densities, fi
 * Velodyne VLP-16 using a self-created dataset
 * Livox Horizon using a self-created dataset
 
-The motivation stems from reducing the complexity and configuration burden of localisation and mapping algorithms.
+The motivation stems from reducing the complexity and configuration burden of localisation algorithms.
 
 The code is portable, easy to understand, and modify.
 
