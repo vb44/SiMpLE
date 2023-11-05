@@ -1,0 +1,12 @@
+% computation finised at : Sun Nov  5 02:53:50 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/MulRan/Sejong_03/";
+sigma                  = 0.35; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 10; % [m]
+outputFileName         = "../results/MulRan/Sejong_03";
+outputConfigFileName   = "../results/MulRan/Sejong_03_config";
+avg_time_per_scan      = 60; % [ms]

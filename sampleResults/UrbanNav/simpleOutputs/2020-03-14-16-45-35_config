@@ -1,0 +1,12 @@
+% computation finised at : Sat Nov  4 22:58:52 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/UrbanNav/2020-03-14-16-45-35/";
+sigma                  = 0.35; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 5; % [m]
+outputFileName         = "../results/UrbanNav/2020-03-14-16-45-35";
+outputConfigFileName   = "../results/UrbanNav/2020-03-14-16-45-35_config";
+avg_time_per_scan      = 58; % [ms]

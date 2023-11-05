@@ -1,0 +1,12 @@
+% computation finised at : Sun Nov  5 04:36:05 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/Kitti/sequences/06/velodyne/";
+sigma                  = 0.3; % [m]
+rMap                   = 0.5; % [m]
+rNew                   = 0.3; % [m]
+convergenceTolerance   = 1e-06;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 0; % [m]
+outputFileName         = "../results/KITTI_offline/06";
+outputConfigFileName   = "../results/KITTI_offline/06_config";
+avg_time_per_scan      = 497; % [ms]

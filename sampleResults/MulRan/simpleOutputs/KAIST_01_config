@@ -1,0 +1,12 @@
+% computation finised at : Sun Nov  5 00:37:16 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/MulRan/KAIST_01/";
+sigma                  = 0.35; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 10; % [m]
+outputFileName         = "../results/MulRan/KAIST_01";
+outputConfigFileName   = "../results/MulRan/KAIST_01_config";
+avg_time_per_scan      = 76; % [ms]

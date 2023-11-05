@@ -1,0 +1,12 @@
+% computation finised at : Sat Nov  4 23:12:47 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/toTest/Adventure1_fronthalf/scans/";
+sigma                  = 0.3; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 0; % [m]
+outputFileName         = "../results/UQ/Adventure1_fronthalf";
+outputConfigFileName   = "../results/UQ/Adventure1_fronthalf_config";
+avg_time_per_scan      = 54; % [ms]

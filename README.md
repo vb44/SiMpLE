@@ -129,7 +129,7 @@ Sample use with the KITTI dataset is shown below.\
 ***Note that the --kitti argument is required to correct the scans for the KITTI dataset.*** 
 
 ```bash
-./simple --path KITTI/07/velodyne/ --sigma 0.3 --rMap 2.0 --rNew 0.35 --convergenceTolerance 1e-4 --minSensorRange 10 --maxSensorRange 80 --outputFileName ./results/test_Kitti_07 --kitti
+./simple --path KITTI/07/velodyne/ --sigma 0.3 --rMap 2.0 --rNew 0.5 --convergenceTolerance 1e-3 --minSensorRange 10 --maxSensorRange 80 --outputFileName test_Kitti_07 --kitti
 ```
 ## Sample results interpretation
 An example of interpreting the result file in the KITTI format is displayed in *plotResultsMATLAB/interpretResults.m*.
@@ -138,30 +138,31 @@ An example of interpreting the result file in the KITTI format is displayed in *
 Sample results from the paper are available in the ***sampleResults*** folder for all reported datasets.\
 The estimated trajectories can be evaluated in the *devkit* folder, which is a reduced version of the devkit provided by KITTI.
 
+It is important to note that the KITTI estimates must be transformed to the ground truth frame using the sensor registration before evaluating the results. An example is provided in the ***sampleResults*** folder.
+
 ## Results on different hardware and software versions
 Slight variations were observed when executing the algorithm on different machines.\
 This is caused by the Dlib optimisation library having slight numerical precision differences when searching for the best pose hypothesis.
 * Ubuntu 20.04.5: Desktop with Intel Core i7 (10th gen, 16 cores).
 * Ubuntu 20.04.6: Laptop with Intel Core i7 (8 cores).
 * Ubuntu 22.04.3: Desktop virtual machine with Intel Core i7 (10th gen, 10 cores).
-* Fedora 38     : Laptop with Intel Core i7 (9th gen, 12 cores).
 
 The KITTI results on different machines are shown below.
 
-|    Sequence | Ubuntu 20.04.5 | Ubuntu 20.04.6 | Ubuntu 22.04.3 | Fedora 38  |
-|------------:|----------------|----------------|----------------|------------|
-|      **00** |     0.7468     |     0.7468     |     0.7473     |   0.7507   |
-|      **01** |     0.6063     |     0.6063     |     0.6062     |   0.6169   |
-|      **02** |     0.6913     |     0.6927     |     0.6914     |   0.6671   |
-|      **03** |     0.7420     |     0.7420     |     0.7420     |   0.7270   |
-|      **04** |     0.3966     |     0.3966     |     0.3966     |   0.3987   |
-|      **05** |     0.3922     |     0.3895     |     0.3873     |   0.3817   |
-|      **06** |     0.2751     |     0.2751     |     0.2751     |   0.2796   |
-|      **07** |     0.5867     |     0.5867     |     0.5867     |   0.5830   |
-|      **08** |     0.8392     |     0.8368     |     0.8392     |   0.8647   |
-|      **09** |     0.6244     |     0.6244     |     0.6244     |   0.5996   |
-|      **10** |     0.7794     |     0.7794     |     0.7680     |   0.8309   |
-| **avg (%)** |   **0.6073**   |   **0.6069**   |   **0.6058**   | **0.6091** |
+| **Sequence** | **Ubuntu 20.04.5** | **Ubuntu 20.04.6** | **Ubuntu 22.04.3** |
+|--------------|--------------------|--------------------|--------------------|
+| **00**       |       0.6667       |       0.6585       |       0.6599       |
+| **01**       |       0.7749       |       0.7750       |       0.7682       |
+| **02**       |       0.6263       |       0.6452       |       0.6290       |
+| **03**       |       0.7369       |       0.7378       |       0.7450       |
+| **04**       |       0.4067       |       0.4063       |       0.4043       |
+| **05**       |       0.3372       |       0.3298       |       0.3328       |
+| **06**       |       0.2613       |       0.2607       |       0.2621       |
+| **07**       |       0.4706       |       0.4768       |       0.4488       |
+| **08**       |       0.8236       |       0.8238       |       0.8215       |
+| **09**       |       0.5684       |       0.5420       |       0.5588       |
+| **10**       |       0.6454       |       0.6318       |       0.6622       |
+| **Average**  |     **0.5744**     |     **0.5716**     |     **0.5720**     |
 
 ## Other datasets
 The UQ dataset scans can be downloaded from https://drive.google.com/drive/folders/1PgECQIySs72Qz-CXhAsAKSq_fRi5S3oA?usp=sharing.

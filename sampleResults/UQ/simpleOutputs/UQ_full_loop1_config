@@ -1,0 +1,12 @@
+% computation finised at : Sun Nov  5 11:12:52 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/Saab/datasets/toTest/UQ_full_loop1/scans/";
+sigma                  = 12; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 10; % [m]
+outputFileName         = "../results/UQ/UQ_full_loop1";
+outputConfigFileName   = "../results/UQ/UQ_full_loop1_config";
+avg_time_per_scan      = 36; % [ms]

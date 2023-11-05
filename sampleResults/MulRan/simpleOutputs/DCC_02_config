@@ -1,0 +1,12 @@
+% computation finised at : Sun Nov  5 00:13:35 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/MulRan/DCC_02/";
+sigma                  = 0.35; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 10; % [m]
+outputFileName         = "../results/MulRan/DCC_02";
+outputConfigFileName   = "../results/MulRan/DCC_02_config";
+avg_time_per_scan      = 82; % [ms]

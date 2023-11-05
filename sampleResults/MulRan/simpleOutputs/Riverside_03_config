@@ -1,0 +1,12 @@
+% computation finised at : Sun Nov  5 01:28:41 2023
+
+scansFolderPath        = "/home/vb/Documents/datasets/MulRan/Riverside_03/";
+sigma                  = 0.35; % [m]
+rMap                   = 2; % [m]
+rNew                   = 0.5; % [m]
+convergenceTolerance   = 0.001;
+maxSensorRange         = 120; % [m]
+minSensorRange         = 10; % [m]
+outputFileName         = "../results/MulRan/Riverside_03";
+outputConfigFileName   = "../results/MulRan/Riverside_03_config";
+avg_time_per_scan      = 52; % [ms]
