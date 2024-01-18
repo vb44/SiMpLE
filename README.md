@@ -144,23 +144,23 @@ Sample use with the KITTI dataset is shown below.\
 ```bash
 ./simple --path KITTI/07/velodyne/ --sigma 0.3 --rMap 2.0 --rNew 0.5 --convergenceTolerance 1e-3 --minSensorRange 10 --maxSensorRange 80 --outputFileName test_Kitti_07 --kitti
 ```
-## Sample results interpretation
+## Sample Results Interpretation
 An example of interpreting the result file in the KITTI format is displayed in *plotResultsMATLAB/interpretResults.m*.
 
-## Sample results and evaluation
+## Sample Results and Evaluation
 Sample results from the paper are available in the ***sampleResults*** folder for all reported datasets.\
 The estimated trajectories can be evaluated in the *devkit* folder, which is a reduced version of the devkit provided by KITTI.
 
 It is important to note that the KITTI estimates must be transformed to the ground truth frame using the sensor registration before evaluating the results. An example is provided in the ***sampleResults*** folder.
 
-## The effect of threading on real-time performance
+## The Effect of Threading on Real-Time Performance
 SiMpLE's real-time performance is strongly reliant on performing CPU threading.
 The average execution times for varying the number of execution threads manually using OpenMP are displayed below.
 The performance of TBB is also included.
 
 ![Threading Results](/media/threadingResults.png)
 
-## Results on different operating systems and processors
+## Results on Different Operating Systems and Processors
 The implementation allows for deterministic results for a varying number of threads on a given platform.
 However, slight variations were observed when executing the algorithm on different machines.
 Upon investigation, this was found to be caused by the Dlib optimisation library having slight numerical precision differences when searching for the best pose hypothesis.
