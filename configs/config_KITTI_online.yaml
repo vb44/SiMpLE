@@ -1,0 +1,16 @@
+---
+# Test setup.
+scanPath: /path_to_scans/velodyne/
+outputFileName: /path_to_output_files/fileName
+kitti: true
+verbose: false
+
+# Algorithm configuration.
+sigma: 0.3
+rMap: 2.0
+rNew: 0.5
+convergenceTol: 1e-3
+minSensorRange: 10
+
+# Hardware configuration.
+maxSensorRange: 80

@@ -1,7 +1,7 @@
 # Sample UrbanNav Results
 ## Algorithm Configuration
 This folder contains sample results for the UrbanNav dataset.\
-The parameters were set as shown below in the command line arguments:
+The parameters were set as shown below:
 
 ```cpp
 // Configuration parameters.
@@ -9,10 +9,10 @@ sigma                  = 0.35;  // [m]
 rMap                   = 2;     // [m]
 rNew                   = 0.5;   // [m]
 convergenceTolerance   = 1e-3;
+minSensorRange         = 5;     // [m]
 
 // Hardware dependent.
 maxSensorRange         = 120;   // [m]
-minSensorRange         = 5;     // [m]
 ```
 * The ***groundTruth*** folder includes the ground truth at 1Hz for each sequence in the TUM format as originally provided by the dataset.
 * The ***tumFormat*** folder includes the trajectory estimates at 1Hz in the sensor frame in the TUM format for direct comparison with the ground truth.

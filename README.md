@@ -1,13 +1,15 @@
-# SiMpLE LiDAR odometry
-Simple Mapping and Localisation Estimation (SiMpLE) is a low-drift and low-configuration LiDAR odometry method providing accurate localisation and mapping with a variety of sensors.
+# SiMpLE Minimal Configuration LiDAR odometry
+Simple Mapping and Localisation Estimation ([SiMpLE](https://doi.org/10.1177/02783649241235325)) is a low-drift and low-configuration LiDAR odometry method providing accurate localization and mapping with a variety of sensors.
 
 [Click here for a demo!](https://github.com/vb44/SiMpLE/assets/63623876/5fc7663b-f255-4b8c-a57b-f8288e56439e)
+
+**The original paper code is available in the *./archive* folder.**
 
 We perform among state-of-the-art LiDAR odometry methods with a simple and use case agnostic algorithm.
 The method is derived from using raw point clouds. We do not modify or develop a new variant of any existing algorithm.
 The code is written for readability and easy understanding with the methodology described in the paper.
 The software can be optimised for increased performance.
-<!-- Our paper is available at https://www.paperLink.com. -->
+Find our paper [here](https://doi.org/10.1177/02783649241235325).
 
 We have tested the algorithm using LiDARs with various point cloud densities, fields of view, and scan patterns,
 * Velodyne HDL-64 KITTI dataset 
@@ -17,7 +19,7 @@ We have tested the algorithm using LiDARs with various point cloud densities, fi
 
 The motivation stems from reducing the complexity and configuration burden of localisation algorithms.
 
-The code is portable, easy to understand, and modify.
+The code is portable, easy to understand, and modify. 
 
 The following includes:
 1. [A summary of the LiDAR odometry method](#method).
@@ -45,7 +47,7 @@ There are also hardware settings:
 
 ## Hardware and Dependencies
 This implementation has been tested on Ubuntu 20.04.5/6 LTS (Focal Fossa) and Ubuntu 22.04.3 (Jammy Jellyfish) with an Intel Core i7-10700K CPU @ 3.80GHz x 16 and 62.5 GiB memory.
-SiMpLE uses a few open-source libraries for Kd-Trees, matrix operations, optimisation functions, and CPU threading.
+SiMpLE uses a few open-source libraries for reading the algorithm configuration file, Kd-Trees, matrix operations, optimization functions, and CPU threading.
 The installation instructions are detailed below.
 
 * Git is required to download the open-source libraries.
@@ -84,11 +86,19 @@ mkdir build && cd build
 cmake ..
 sudo make install
 ```
-* Install the *Dlib* library for optimisation solvers [3, 4].
+* Install the *Dlib* library for the optimization solver [3, 4].
 ```bash
 wget http://dlib.net/files/dlib-19.24.tar.bz2
 tar xvf dlib-19.24.tar.bz2
 cd dlib-19.24/
+mkdir build && cd build
+cmake ..
+sudo make install
+```
+* Install the *yaml-cpp* library for reading the configuration file [5].
+```bash
+git clone https://github.com/jbeder/yaml-cpp.git
+cd yaml-cpp
 mkdir build && cd build
 cmake ..
 sudo make install
@@ -121,28 +131,33 @@ make
 
 ## Example
 <!-- Show example usage. -->
-Only works with *.bin* files in the KITTI format.
-However, the code is human-friendly and very easy to modify to suit the desired inputs and outputs.
-When compiled, the SiMpLE algorithm is run from the command line as shown below.
+The code only works with *.bin* files in the KITTI format.
+However, the code is very easy to modify to suit the desired inputs and outputs.
+When compiled, the SiMpLE algorithm is run using a *.yaml* algorithm configuration file as shown below.
 ```bash
-./simple 
---path                    "path_to_scans" 
---sigma                   "sigma_value" 
---rMap                    "radius [m]" 
---rNew                    "radius [m]" 
---convergenceTolerance    "tolerance" 
---maxSensorRange          "radius [m]" 
---minSensorRange          "radius [m]" 
---outputFileName          "fileName" 
---kitti (optional)
---verbose (optional)
+./simple config.yaml
 ```
-The verbose mode prints information to the terminal.
-Sample use with the KITTI dataset is shown below.\
+Sample config files are included in the *config* folder.
+An example is shown below.\
 ***Note that the --kitti argument is required to correct the scans for the KITTI dataset.*** 
 
-```bash
-./simple --path KITTI/07/velodyne/ --sigma 0.3 --rMap 2.0 --rNew 0.5 --convergenceTolerance 1e-3 --minSensorRange 10 --maxSensorRange 80 --outputFileName test_Kitti_07 --kitti
+```yaml
+---
+# Test setup.
+scanPath: /path_to_scans/velodyne/
+outputFileName: /path_to_output_files/fileName
+kitti: true
+verbose: true
+
+# Algorithm configuration.
+sigma: 0.3
+rMap: 0.5
+rNew: 0.3
+convergenceTol: 1e-6
+minSensorRange: 0
+
+# Hardware configuration.
+maxSensorRange: 120
 ```
 ## Sample Results Interpretation
 An example of interpreting the result file in the KITTI format is displayed in *plotResultsMATLAB/interpretResults.m*.
@@ -226,11 +241,15 @@ For complete transparency, an extensive list of all identifiable parameters and 
 | Line search, maxIterations | Dlib (API call to ‘bfgs search strategy’)                    | 100           | Set as a const parameter in the library.                                                                                                                                                                                                                                                    
 
 ## Other datasets
-The UQ dataset scans can be downloaded from https://drive.google.com/drive/folders/1PgECQIySs72Qz-CXhAsAKSq_fRi5S3oA?usp=sharing.
+The UQ dataset scans can be downloaded from [here](https://drive.google.com/drive/folders/1PgECQIySs72Qz-CXhAsAKSq_fRi5S3oA?usp=sharing).
 The folder contains the raw VLP-16 and Livox scans in the KITTI format for comparison with the sensor trajectory results shown in the paper.
 
+## Updates
+* 05/04/2024: Refactor project for better readability and execution time improvement.
+
 ## References
-[1] Eigen library: https://eigen.tuxfamily.org/dox/GettingStarted.html \
-[2] Nanoflann library: https://github.com/jlblancoc/nanoflann \
-[3] Dlib library: http://dlib.net/compile.html \
-[4] Dlib C++ install for CMake: https://learnopencv.com/install-dlib-on-ubuntu/
+[1] [eigen library](https://eigen.tuxfamily.org/dox/GettingStarted.html) \
+[2] [nanoflann library](https://github.com/jlblancoc/nanoflann) \
+[3] [Dlib library](http://dlib.net/compile.html) \
+[4] [Dlib C++ install for CMake](https://learnopencv.com/install-dlib-on-ubuntu/)\
+[5] [yaml-cpp library](https://github.com/jbeder/yaml-cpp)

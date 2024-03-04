@@ -1,7 +1,7 @@
 # Sample KITTI Results
 This folder contains sample results for the KITTI dataset and the corresponding configuration files.\
-***Note that the --kitti argument is required to correct the scans for the KITTI dataset\*.*** \
-The parameters were set as shown below in the command line arguments for the real-time tests:
+***Note that the kitti argument is required to correct the scans for the KITTI dataset\*.*** \
+The parameters were set as shown below for the real-time tests:
 
 ```cpp
 // Configuration parameters.
@@ -9,10 +9,10 @@ sigma                  = 0.3;   // [m]
 rMap                   = 2;     // [m]
 rNew                   = 0.5;   // [m]
 convergenceTolerance   = 1e-3;
+minSensorRange         = 10;    // [m]
 
 // Hardware dependent.
 maxSensorRange         = 80;    // [m]
-minSensorRange         = 10;    // [m]
 ```
 * The ***groundTruth*** folder includes the ground truth for each sequence provided by the KITTI dataset (https://www.cvlibs.net/datasets/kitti/eval_odometry.php).
 * The ***simpleOutputs*** folder includes the trajectory estimates in the sensor frame. This is the output from the SiMpLE algorithm.

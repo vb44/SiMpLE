@@ -144,7 +144,7 @@ bool compareStrings(std::string a, std::string b)
     aNum = aNum.substr(0, aNum.find(delimiterEnd));
     bNum = bNum.substr(0, bNum.find(delimiterEnd));
 
-    return stoi(aNum) < stoi(bNum);
+    return stol(aNum) < stol(bNum);
 }
 
 Eigen::MatrixXd subsample(double subsampleRadius, std::set<int> allPoints, Eigen::MatrixXd scan)
