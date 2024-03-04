@@ -4,7 +4,7 @@ ConfigParser::ConfigParser(int argc, char** yamlFilePath)
 {
     if (argc != 2)
     {
-        std::cerr << "Usage: ./main config_file.yaml" << std::endl;
+        std::cerr << "Usage: ./simple config_file.yaml" << std::endl;
         exit(EXIT_FAILURE);
     }
     yamlFilePath_ = yamlFilePath[1];
