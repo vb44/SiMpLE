@@ -1,0 +1,17 @@
+---
+# Scans and pose estimate
+pose_file: /path_to_the_pose_file
+pc_folder_path: /path_to_bin_folder/
+
+# Plotting
+pt_size: 1.0
+z_min: -3
+z_max: 3
+
+# Map
+voxel_size: 1.0
+map_output_file: /path_to_map_save_file
+
+# Configuration
+visualize_scans: true
+make_map: true
