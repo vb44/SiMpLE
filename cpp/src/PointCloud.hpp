@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SCAN_H
-#define SCAN_H
+#ifndef POINTCLOUD_H
+#define POINTCLOUD_H
 
 #include <eigen3/Eigen/Dense>
 #include <fstream>
@@ -10,42 +10,54 @@
 #include <tbb/parallel_for.h>
 
 #include "ConfigParser.hpp"
+#include "nanoflannUtils.hpp"
 #include "utils.hpp"
 
 /**
- * @brief A generic class for performing operations on a scan.
+ * @brief A generic class for performing operations on a pointcloud.
  * 
  */
-class Scan
+class PointCloud
 {
     public:
-        // Container to store the point cloud.
-        std::vector<Eigen::Vector4d> ptCloud;
-
-        // Container for a nanoflann-friendly point cloud.
-        PointCloud<double> pcForKdTree_;
-
         /**
          * @brief Construct a new Scan object.
          * 
          * @param config The algorithm configuration parameters.
          */
-        Scan(ConfigParser &config);
+        PointCloud(const ConfigParser &config);
         
         /**
          * @brief Destroy the Scan object.
          * 
          */
-        ~Scan();
+        ~PointCloud() = default;
 
         /**
          * @brief Read a new .bin scan file.
          * 
          * @param fileName Name of the file to read.
          */
-        void readScan(std::string fileName);
+        void readScan(const std::string &fileName);
+
+        /**
+         * @brief Get the point cloud.
+         * 
+         * @return const std::vector<Eigen::Vector4d>& The point cloud.
+         */
+        const std::vector<Eigen::Vector4d> &getPtCloud() const;
+
+        /**
+         * @brief Get the point cloud in a nanoflann-friendly container.
+         * 
+         * @return const NanoflannPointsContainer<double>& The point cloud in
+         *         a nanoflann-friendly container.
+         */
+        const NanoflannPointsContainer<double> &getPcForKdTree() const;
 
     protected:
+        static constexpr int NUM_COLUMNS_BIN = 4;
+
         // Point cloud subsample radius.
         double subsampleRadius_;
         
@@ -58,11 +70,17 @@ class Scan
         // A container used for radially subsampling the points.
         std::set<int> allPoints_;
 
+        // Container to store the point cloud.
+        std::vector<Eigen::Vector4d> ptCloud_;
+
+        // Container for a nanoflann-friendly point cloud.
+        NanoflannPointsContainer<double> pcForKdTree_;
+
         /**
          * @brief Radially subsample the point cloud.
          * 
-         * @param pts               The points to subsample.
-         * @param subsampleRadius   The subsample radius in meters.
+         * @param pts The points to subsample.
+         * @param subsampleRadius The subsample radius in meters.
          */
         void subsample_(std::vector<Eigen::Vector4d> &pts,
                         double subsampleRadius);
@@ -72,24 +90,24 @@ class Scan
          * 
          * @param pts The points to convert to a nanoflann-friendly container.
          */
-        void convertToPointCloudKdTree_(std::vector<Eigen::Vector4d> &pts);
+        void convertToPointCloudKdTree_(const std::vector<Eigen::Vector4d> &pts);
 
     private:
         // Boolean to apply the correcttion factor to the KITTI scans.
         bool kitti_;
+        
+        /**
+         * @brief Apply a correcttion factor to fix the KITTI scans.
+         * 
+         */
+        void correctKittiScan();
 
         /**
          * @brief Apply the scan correction factor if required and subsample
          *        the scan.
          * 
          */
-        void processPointCloud_();
-
-        /**
-         * @brief Apply a correcttion factor to fix the KITTI scans.
-         * 
-         */
-        void correctKittiScan_();
+        void processPointCloud();
 };
 
 #endif

@@ -1,20 +1,16 @@
-#include "Scan.hpp"
+#include "PointCloud.hpp"
 
-Scan::Scan(ConfigParser &config)
-{
-    subsampleRadius_ = config.rNew;
-    maxSensorRange_ = config.maxSensorRange;
-    minSensorRange_ = config.minSensorRange;
-    kitti_ = config.kitti;
-}
-
-Scan::~Scan()
+PointCloud::PointCloud(const ConfigParser &config)
+    : subsampleRadius_(config.getRNew()),
+      maxSensorRange_(config.getMaxSensorRange()),
+      minSensorRange_(config.getMinSensorRange()),
+      kitti_(config.getKitti())
 {
 }
 
-void Scan::readScan(std::string fileName)
+void PointCloud::readScan(const std::string &fileName)
 {
-    ptCloud.clear();
+    ptCloud_.clear();
     allPoints_.clear();
     std::ifstream file(fileName, std::ios::in | std::ios::binary);
     // if (!file) return EXIT_FAILURE;
@@ -24,11 +20,15 @@ void Scan::readScan(std::string fileName)
     int counter = 0;
     
     while (file.read((char*)&item, sizeof(item)))
+    {
         ptsFromFile.push_back(item);
+    }
+    file.close();
 
-    unsigned int numPts = ptsFromFile.size() / 4; // .bin format
+    // .bin format
+    unsigned int numPts = ptsFromFile.size() / NUM_COLUMNS_BIN; 
  
-    for (unsigned int i = 0; i < ptsFromFile.size(); i+=4)
+    for (unsigned int i = 0; i < ptsFromFile.size(); i+=NUM_COLUMNS_BIN)
     {
         // Save the pt if it is within the maximum and mininmum sensor ranges.
         double normSquared = pow(ptsFromFile[i], 2) + 
@@ -37,10 +37,10 @@ void Scan::readScan(std::string fileName)
         if ((normSquared > pow(minSensorRange_, 2)) &&
             (normSquared < pow(maxSensorRange_, 2)))
         {
-            ptCloud.push_back({ptsFromFile[i],
-                               ptsFromFile[i+1],
-                               ptsFromFile[i+2],
-                               1});
+            ptCloud_.push_back({ptsFromFile[i],
+                                ptsFromFile[i+1],
+                                ptsFromFile[i+2],
+                                1});
             
             // Save the pt index for subsampling.
             allPoints_.insert(counter); 
@@ -49,45 +49,58 @@ void Scan::readScan(std::string fileName)
     }
 
     // Process the scan.
-    processPointCloud_();
+    processPointCloud();
 }
 
-void Scan::processPointCloud_()
+const std::vector<Eigen::Vector4d>& PointCloud::getPtCloud() const
+{
+    return ptCloud_;
+}
+        
+const NanoflannPointsContainer<double>& PointCloud::getPcForKdTree() const
+{
+    return pcForKdTree_;
+}
+
+void PointCloud::processPointCloud()
 {
     // Check if the scan needs to be corrected.
     // Apply the calibration factor as explained in IMLS-SLAM, CT-ICP,
     // and KISS-ICP.
-    if (kitti_) correctKittiScan_();
+    if (kitti_)
+    {
+        correctKittiScan();
+    }
 
     // Subsample the point cloud.
-    subsample_(ptCloud, subsampleRadius_);
+    subsample_(ptCloud_, subsampleRadius_);
 }
 
-void Scan::correctKittiScan_() {
+void PointCloud::correctKittiScan() {
 
     // Adapted from KISS-ICP opensource code to correct the KITTI scans.
     constexpr double VERTICAL_ANGLE_OFFSET = (0.205 * M_PI) / 180.0;
     
     tbb::parallel_for(
-    tbb::blocked_range<int>(0, ptCloud.size()),
+    tbb::blocked_range<int>(0, ptCloud_.size()),
     [&](tbb::blocked_range<int> r)
     {
         for (unsigned int i = r.begin(); i < r.end(); i++)
         {
             Eigen::Vector3d pt;
             Eigen::Vector3d ptCorrected;
-            pt << ptCloud[i](0), ptCloud[i][1], ptCloud[i][2];
+            pt << ptCloud_[i](0), ptCloud_[i][1], ptCloud_[i][2];
             const Eigen::Vector3d rotationVector = 
                                   pt.cross(Eigen::Vector3d(0.0, 0.0, 1.0));
             ptCorrected = Eigen::AngleAxisd(VERTICAL_ANGLE_OFFSET,
                                             rotationVector.normalized()) * pt;
-            ptCloud[i] = {ptCorrected(0), ptCorrected(1), ptCorrected(2), 1};
+            ptCloud_[i] = {ptCorrected(0), ptCorrected(1), ptCorrected(2), 1};
         }
     });
 }
 
-void Scan::subsample_(std::vector<Eigen::Vector4d> &pts,
-                      double subsampleRadius)
+void PointCloud::subsample_(std::vector<Eigen::Vector4d> &pts,
+                            double subsampleRadius)
 {
     std::vector<Eigen::Vector4d> ptsSubsampled;
     
@@ -109,17 +122,20 @@ void Scan::subsample_(std::vector<Eigen::Vector4d> &pts,
         for (unsigned int j = 0; j < nMatches; j++)
         {
             if (i != ret_matches[j].first)
+            {
                 allPoints_.erase(ret_matches[j].first);
+            }
         }
         ptsSubsampled.push_back({pts[i][0], pts[i][1], pts[i][2], 1});
     }
-    delete scanKdTree; // free memory
+    delete scanKdTree;
 
     // Overwrite the scan with the subsampled points.
     pts = ptsSubsampled;
 }
 
-void Scan::convertToPointCloudKdTree_(std::vector<Eigen::Vector4d> &pts)
+void PointCloud::convertToPointCloudKdTree_(
+                 const std::vector<Eigen::Vector4d> &pts)
 {
     size_t pcLength = pts.size();
     pcForKdTree_.pts.clear();

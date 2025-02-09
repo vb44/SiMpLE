@@ -3,6 +3,9 @@
 #ifndef OBJECTIVE_FUNCTION_H
 #define OBJECTIVE_FUNCTION_H
 
+#include <memory>
+
+#include "nanoflannUtils.hpp"
 #include "utils.hpp"
 
 /**
@@ -18,30 +21,30 @@ class ObjectiveFunction
         /**
          * @brief Constructor to initialise member variables.
          * 
-         * @param uncertainty       Calculated using sigma.
-         * @param scan              The scan to register to subMap.
-         * @param sourceScanKdTree  A KdTree of the subMap.
+         * @param uncertainty Calculated using sigma.
+         * @param scan The scan to register to subMap.
+         * @param sourceScanKdTree A KdTree of the subMap.
          */
-        ObjectiveFunction(double sigma, std::vector<Eigen::Vector4d> &scan,
-                          my_kd_tree_t *sourceScanKdTree);
+        ObjectiveFunction(double sigma, const std::vector<Eigen::Vector4d> &scan,
+                          my_kd_tree_t* subMapKdTree);
 
         /**
          * @brief Destroy the Objective Function object.
          * 
          */
-        ~ObjectiveFunction();
+        ~ObjectiveFunction() = default;
 
         /**
          * @brief Overload the function call operator.
          * 
-         * @param m         Hypothesis to register new scan to exsiting map.
-         * @return double   The registration score.
+         * @param m Hypothesis to register new scan to exsiting map.
+         * @return double The registration score.
          */
         double operator()(const column_vector& m) const;
 
     private:
         // Registration parameter, this is 1/(2*sig^2).
-        double sigma_;
+        double rewardParam_;
 
         // New scan to register to the existing map.
         std::vector<Eigen::Vector4d> scan_;

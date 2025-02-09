@@ -1,16 +1,16 @@
 #pragma once
 
-#ifndef MAP_H
-#define MAP_H
+#ifndef POINTMAP_H
+#define POINTMAP_H
 
-#include "Scan.hpp"
+#include "PointCloud.hpp"
 
 /**
  * @brief A class to maintain an exisitng map of the environment used for
  *        registration with a new scan.
  * 
  */
-class Map : public Scan
+class PointMap : public PointCloud
 {
     public:
         /**
@@ -18,22 +18,22 @@ class Map : public Scan
          * 
          * @param config The algorithm configuration parameters.
          */
-        Map(ConfigParser &config);
+        PointMap(const ConfigParser &config);
 
         /**
          * @brief Destroy the Map object.
          * 
          */
-        ~Map();
+        ~PointMap() = default;
 
         /**
          * @brief Update the existing map with the new registration result.
          * 
-         * @param pts   The new scan points to update the exisitng map.
-         * @param pose  The current pose of the sensor.
+         * @param pts The new scan points to update the exisitng map.
+         * @param pose The current pose of the sensor.
          */
-        void updateMap(std::vector<Eigen::Vector4d> &pts,
-                       Eigen::Matrix4d &pose);
+        void updateMap(const std::vector<Eigen::Vector4d> &pts,
+                       const Eigen::Matrix4d &pose);
 };
 
 #endif
