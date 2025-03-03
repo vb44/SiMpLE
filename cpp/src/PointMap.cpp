@@ -1,9 +1,10 @@
 #include "PointMap.hpp"
 
-PointMap::PointMap(const ConfigParser &config)
-    : PointCloud(config)
+PointMap::PointMap(double mapSubsampleRadius,
+                   double maxSesorRange)
+    : PointCloud(maxSesorRange)
 {
-    subsampleRadius_ = config.getRMap();
+    subsampleRadius_ = mapSubsampleRadius;
 }
 
 void PointMap::updateMap(const std::vector<Eigen::Vector4d> &pts,

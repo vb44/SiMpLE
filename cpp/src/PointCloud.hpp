@@ -9,7 +9,6 @@
 #include <set>
 #include <tbb/parallel_for.h>
 
-#include "ConfigParser.hpp"
 #include "nanoflannUtils.hpp"
 #include "utils.hpp"
 
@@ -20,12 +19,24 @@
 class PointCloud
 {
     public:
+        
         /**
          * @brief Construct a new Scan object.
          * 
-         * @param config The algorithm configuration parameters.
+         * @param maxSensorRange Maximum sensor range.
          */
-        PointCloud(const ConfigParser &config);
+        PointCloud(double maxSensorRange);
+        
+        /**
+         * @brief Construct a new Scan object.
+         * 
+         * @param subsampleRadius Point cloud subsampling radius.
+         * @param maxSensorRange Maximum sensor range.
+         * @param minSensorRange Minimum sensor range.
+         * @param kitti Flag when using kitti scans as these need to be corrected.
+         */
+        PointCloud(double subsampleRadius, double maxSensorRange,
+                   double minSensorRange, bool kitti);
         
         /**
          * @brief Destroy the Scan object.

@@ -1,10 +1,16 @@
 #include "PointCloud.hpp"
 
-PointCloud::PointCloud(const ConfigParser &config)
-    : subsampleRadius_(config.getRNew()),
-      maxSensorRange_(config.getMaxSensorRange()),
-      minSensorRange_(config.getMinSensorRange()),
-      kitti_(config.getKitti())
+PointCloud::PointCloud(double maxSensorRange)
+    : maxSensorRange_(maxSensorRange)
+{
+}
+
+PointCloud::PointCloud(double subsampleRadius, double maxSensorRange,
+                       double minSensorRange, bool kitti)
+    : subsampleRadius_(subsampleRadius),
+      maxSensorRange_(maxSensorRange),
+      minSensorRange_(minSensorRange),
+      kitti_(kitti)
 {
 }
 
