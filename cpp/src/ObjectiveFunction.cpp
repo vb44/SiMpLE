@@ -45,6 +45,11 @@ double ObjectiveFunction::operator()(const column_vector& m) const
         }
     });
 
-    // Sum the scores.
-    return  -std::accumulate(scores.begin(), scores.end(), 0.0);
+    // Deterministic results, sum the scores.
+    double score = 0;
+    for (auto& n: scores)
+    {
+        score -= n;
+    }
+    return  score;
 }

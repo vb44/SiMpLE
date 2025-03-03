@@ -7,7 +7,6 @@
 #include <eigen3/Eigen/Dense>
 #include <nanoflann.hpp>
 
-#include "ConfigParser.hpp"
 #include "ObjectiveFunction.hpp"
 
 class Register
@@ -16,9 +15,10 @@ class Register
         /**
          * @brief Construct a new Register object.
          * 
-         * @param config Algorithm configuration parameters.
+         * @param convergenceTol The convergence tolerance for the optimisation.alignas
+         * @param sigma The scoring parameter for the objective function.
          */
-        Register(const ConfigParser &config);
+        Register(double convergenceTol, double sigma);
 
         /**
          * @brief Destroy the Register object.

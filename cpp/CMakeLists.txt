@@ -2,16 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(SiMpLE)
 
+add_compile_options(-std=c++17 -O3)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Build by default in release mode
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-endif()
-
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Find the required packages
 find_package(nanoflann REQUIRED)

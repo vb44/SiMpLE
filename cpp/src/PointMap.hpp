@@ -16,9 +16,9 @@ class PointMap : public PointCloud
         /**
          * @brief Construct a new Map object.
          * 
-         * @param config The algorithm configuration parameters.
+         * @param mapSubsampleRadius Map subsampling radius.
          */
-        PointMap(const ConfigParser &config);
+        PointMap(double mapSubsampleRadius, double maxSensorRange);
 
         /**
          * @brief Destroy the Map object.

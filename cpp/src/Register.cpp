@@ -1,8 +1,8 @@
 #include "Register.hpp"
 
-Register::Register(const ConfigParser &config)
-    : convTol_(config.getConvergenceTol()),
-      rewardParam_(pow(config.getSigma(),-2)/2),
+Register::Register(double convergenceTol, double sigma)
+    : convTol_(convergenceTol),
+      rewardParam_(pow(sigma,-2)/2),
       registrationScore_(0.0)
 {
 }
