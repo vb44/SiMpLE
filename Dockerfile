@@ -1,31 +1,28 @@
-FROM ubuntu:latest AS build-stage 
+FROM alpine:latest AS shared-dependencies
 
-ARG dlib_ver=19.24
+RUN apk update && \
+apk add libtbb \
+yaml-cpp \
+openblas && \
+apk add -X http://dl-cdn.alpinelinux.org/alpine/edge/testing dlib
 
-RUN apt update && apt upgrade -y && \
-apt install --no-install-recommends -y \
-wget \
-bzip2 \
-unzip \
+FROM shared-dependencies AS build-stage 
+
+RUN apk update && \
+apk add g++ \
 cmake \
 make \
-g++ \
-libeigen3-dev \
-libnanoflann-dev \
-libtbb-dev
+eigen-dev \
+libtbb-dev \
+openblas-dev \
+yaml-cpp-dev && \
+apk add -X http://dl-cdn.alpinelinux.org/alpine/edge/testing dlib-dev
 
 WORKDIR /home/dependencies
-RUN wget --no-check-certificate http://dlib.net/files/dlib-${dlib_ver}.tar.bz2
-RUN tar -xf dlib-${dlib_ver}.tar.bz2
-WORKDIR ./dlib-${dlib_ver}/build
-RUN cmake ..
-RUN make install
-
-WORKDIR /home/dependencies
-RUN wget --no-check-certificate https://github.com/jbeder/yaml-cpp/archive/refs/heads/master.zip
-RUN apt install --no-install-recommends -y unzip
+RUN wget https://github.com/jlblancoc/nanoflann/archive/refs/heads/master.zip
 RUN unzip master.zip
-WORKDIR ./yaml-cpp-master/build
+RUN rm master.zip
+WORKDIR ./nanoflann-master/build
 RUN cmake ..
 RUN make install
 
@@ -35,11 +32,8 @@ WORKDIR /home/build
 RUN cmake ../src
 RUN make
 
-FROM ubuntu:latest AS final-stage
+FROM shared-dependencies AS final-stage
 
-RUN apt update && apt upgrade -y && \
-apt install --no-install-recommends -y \
-libtbb-dev
 COPY --from=build-stage /home/build/simple ./simple
 
 ENTRYPOINT ["./simple"]
