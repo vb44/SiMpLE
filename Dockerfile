@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:latest AS build-stage 
 
 ARG dlib_ver=19.24
 
@@ -34,3 +34,9 @@ COPY ./src ./src
 WORKDIR /home/build
 RUN cmake ../src
 RUN make
+
+FROM ubuntu:latest AS final-stage
+RUN apt update && apt upgrade -y && \
+apt install --no-install-recommends -y \
+libtbb-dev
+COPY --from=build-stage /home/build/simple ./simple
