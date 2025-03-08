@@ -36,7 +36,10 @@ RUN cmake ../src
 RUN make
 
 FROM ubuntu:latest AS final-stage
+
 RUN apt update && apt upgrade -y && \
 apt install --no-install-recommends -y \
 libtbb-dev
 COPY --from=build-stage /home/build/simple ./simple
+
+ENTRYPOINT ["./simple"]
