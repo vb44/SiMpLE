@@ -18,18 +18,16 @@ RUN apk add --no-cache g++ \
   apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing dlib-dev
 
 WORKDIR /home/dependencies
-RUN wget https://github.com/jlblancoc/nanoflann/archive/refs/heads/master.zip
-RUN unzip master.zip
-RUN rm master.zip
+RUN wget https://github.com/jlblancoc/nanoflann/archive/refs/heads/master.zip && \
+  unzip master.zip && \
+  rm master.zip
 WORKDIR ./nanoflann-master/build
-RUN cmake ..
-RUN make install
+RUN cmake .. && make install
 
 WORKDIR /home
 COPY ./cpp ./cpp
-WORKDIR /home/build
-RUN cmake ../cpp
-RUN make
+WORKDIR ./build
+RUN cmake ../cpp && make
 
 FROM shared-dependencies AS final-stage
 
