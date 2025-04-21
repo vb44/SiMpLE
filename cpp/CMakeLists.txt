@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0)
 
 project(SiMpLE)
 
@@ -11,7 +11,7 @@ find_package(TBB REQUIRED)
 find_package(dlib REQUIRED)
 find_package(Threads REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
+ 
 # Define source files
 set(SOURCES
     src/main.cpp

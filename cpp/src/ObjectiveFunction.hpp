@@ -3,8 +3,6 @@
 #ifndef OBJECTIVE_FUNCTION_H
 #define OBJECTIVE_FUNCTION_H
 
-#include <memory>
-
 #include "nanoflannUtils.hpp"
 #include "utils.hpp"
 
@@ -14,10 +12,9 @@
  *        The only configuration parameter used here is sigma to score each
  *        point in the new scan.
  */
-class ObjectiveFunction
+class ObjectiveFunction 
 {
     public:
-
         /**
          * @brief Constructor to initialise member variables.
          * 
@@ -25,8 +22,7 @@ class ObjectiveFunction
          * @param scan The scan to register to subMap.
          * @param sourceScanKdTree A KdTree of the subMap.
          */
-        ObjectiveFunction(double sigma, const std::vector<Eigen::Vector4d> &scan,
-                          my_kd_tree_t* subMapKdTree);
+        ObjectiveFunction(double sigma, const std::vector<Eigen::Vector4d> &scan, my_kd_tree_t* subMapKdTree);
 
         /**
          * @brief Destroy the Objective Function object.
@@ -37,8 +33,8 @@ class ObjectiveFunction
         /**
          * @brief Overload the function call operator.
          * 
-         * @param m Hypothesis to register new scan to exsiting map.
-         * @return double The registration score.
+         * @param m         Hypothesis to register new scan to exsiting map.
+         * @return double   The registration score.
          */
         double operator()(const column_vector& m) const;
 
@@ -56,4 +52,4 @@ class ObjectiveFunction
         my_kd_tree_t *subMapKdTree_;
 };
 
-#endif
+#endif // ObJECTIVE_FUNCTION_H

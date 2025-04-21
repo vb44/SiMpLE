@@ -1,20 +1,16 @@
 #include "ConfigParser.hpp"
 
-ConfigParser::ConfigParser(int argc, char** argv)
-{
-    if (argc != EXPECTED_ARGUMENT_COUNT)
-    {
+ConfigParser::ConfigParser(int argc, char** argv) {
+    if (argc != EXPECTED_ARGUMENT_COUNT) {
         std::cerr << "Usage: ./simple config_file.yaml" << std::endl;
         exit(EXIT_FAILURE);
     }
     yamlFilePath_ = argv[1];
 }
 
-int ConfigParser::parseConfig()
-{
+int ConfigParser::parseConfig() {
     try {
         YAML::Node configFromYaml = YAML::LoadFile(yamlFilePath_);
-        
         kitti_ = configFromYaml["kitti"].as<bool>();
         sigma_ = configFromYaml["sigma"].as<double>();
         rMap_ = configFromYaml["rMap"].as<double>();
@@ -35,47 +31,38 @@ int ConfigParser::parseConfig()
     return 0;
 }
 
-const bool ConfigParser::getKitti() const
-{
+const bool ConfigParser::getKitti() const {
     return kitti_;
 }
 
-const double ConfigParser::getSigma() const
-{
+const double ConfigParser::getSigma() const {
     return sigma_;
 }
 
-const double ConfigParser::getRMap() const
-{
+const double ConfigParser::getRMap() const {
     return rMap_;
 }
 
-const double ConfigParser::getRNew() const
-{
+const double ConfigParser::getRNew() const {
     return rNew_;
 }
 
-const double ConfigParser::getConvergenceTol() const
-{
+const double ConfigParser::getConvergenceTol() const {
     return convergenceTol_;
 }
 
-const double ConfigParser::getMaxSensorRange() const
-{
+const double ConfigParser::getMaxSensorRange() const {
     return maxSensorRange_;
 }
 
-const double ConfigParser::getMinSensorRange() const
-{
+const double ConfigParser::getMinSensorRange() const {
     return minSensorRange_;
 }
 
-const std::string ConfigParser::getScanPath() const
-{
+const std::string ConfigParser::getScanPath() const {
     return scanPath_;
 }
 
-const std::string ConfigParser::getOutputFileName() const
-{
+const std::string ConfigParser::getOutputFileName() const {
     return outputFileName_;
 }
