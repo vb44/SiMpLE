@@ -3,7 +3,6 @@
 scanPath: /path_to_scans/
 outputFileName: /path_to_output_files/fileName
 kitti: false
-verbose: false
 
 # Algorithm configuration.
 sigma: 0.35

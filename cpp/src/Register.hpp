@@ -5,12 +5,10 @@
 
 #include <dlib/optimization.h>
 #include <eigen3/Eigen/Dense>
-#include <nanoflann.hpp>
 
 #include "ObjectiveFunction.hpp"
 
-class Register
-{
+class Register {
     public:
         /**
          * @brief Construct a new Register object.
@@ -43,30 +41,29 @@ class Register
         /**
          * @brief Register the new scan with the map.
          * 
-         * @param scan The new scan to register with the exisitng map.
+         * @param scan      The new scan to register with the exisitng map.
          * @param kdTreePts The local map in a nanoflann-friendly container.
          */
-        void registerScan(const std::vector<Eigen::Vector4d> &scan,
-                          const NanoflannPointsContainer<double> &kdTreePts);
+        void registerScan(const std::vector<Eigen::Vector4d> &scan, const NanoflannPointsContainer<double> &kdTreePts);
 
     private:
+        // Optimizer convergence tolerance for the exit condition.
+        double convTol_;
+
+         // Registration result score.
+        double registrationScore_;
+
+        // Scoring parameter for the objective function.
+        double rewardParam_;
+
         // Initial seed for the optimisation solver - start at the origin.
         std::vector<double> seedConstVel_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
         // Registration result using a dlib-friendly container.
         column_vector regResult_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        
+
         // Previous registration result.
         column_vector prevResult_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
-        // Optimizer convergence tolerance for the exit condition.
-        double convTol_;
-
-        // Registration result score.
-        double registrationScore_;
-
-        // Scoring parameter for the objective function.
-        double rewardParam_;
 };
 
-#endif
+#endif // REIGISTER_H

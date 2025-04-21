@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef CONFIGPARSER_H
+#define CONFIGPARSER_H
+
 #include <iostream>
 #include <string>
 
@@ -9,8 +12,8 @@
  * @brief Handle the algorithm configuration parsing.
  * 
  */
-class ConfigParser
-{
+class ConfigParser {
+    
     public:
         /**
          * @brief Construct a new ConfigParser object.
@@ -135,3 +138,5 @@ class ConfigParser
         // Path to the algorithm configuration file.
         std::string yamlFilePath_;
 };
+
+#endif // CONFIGPARSER_H

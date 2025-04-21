@@ -3,7 +3,6 @@
 scanPath: /path_to_scans/velodyne/
 outputFileName: /path_to_output_files/fileName
 kitti: true
-verbose: false
 
 # Algorithm configuration.
 sigma: 0.3
