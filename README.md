@@ -165,13 +165,6 @@ The estimated trajectories can be evaluated in the *devkit* folder, which is a r
 
 It is important to note that the KITTI estimates must be transformed to the ground truth frame using the sensor registration before evaluating the results. An example is provided in the ***sampleResults*** folder.
 
-## The Effect of Threading on Real-Time Performance
-SiMpLE's real-time performance is strongly reliant on performing CPU threading.
-The average execution times for varying the number of execution threads manually using OpenMP are displayed below.
-The performance of TBB is also included.
-
-![Threading Results](/media/threadingResults.png)
-
 ## Results on Different Operating Systems and Processors
 The implementation allows for deterministic results for a varying number of threads on a given platform.
 However, slight variations were observed when executing the algorithm on different machines.
