@@ -23,7 +23,6 @@ void PointCloud::readScan(std::string fileName) {
     ptCloud_.clear();
     allPoints_.clear();
     std::ifstream file(fileName, std::ios::in | std::ios::binary);
-    // if (!file) return EXIT_FAILURE;
 
     float item;
     std::vector<double> ptsFromFile;
