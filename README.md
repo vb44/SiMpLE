@@ -44,8 +44,38 @@ The method has five configuration parameters.
 There are also hardware settings:
 * ***rMax*** is the maximum radius of the point cloud. This is hardware-dependent and not a configuration parameter.
  
+## Using Docker
+For easy reproducibility, a docker image has been provided. To use it, clone this repository and inside the repository directory run the following command to build the docker image:
+```
+docker build -t simple .
+```
 
-## Hardware and Dependencies
+Inside another directory, acquire a dataset (this example will use the MulRan dataset) and create a configuration file called config.yaml containing the following (other dataset examples can be seen in the configs directory):
+```
+---
+scanPath: ./dataset/MulRan/DCC_02/velodyne/
+outputFileName: ./dataset/result
+kitti: false
+
+# Algorithm configuration.
+sigma: 0.35
+rMap: 2
+rNew: 0.5
+convergenceTol: 1e-3
+minSensorRange: 10
+
+# Hardware configuration.
+maxSensorRange: 120
+```
+
+Then you can run the following command to execute simple:
+```
+docker run --volume ./:/dataset simple /dataset/config.yaml
+```
+The result output should be located in the same directory you ran this command from.
+
+## Building from source
+### Hardware and Dependencies
 This implementation has been tested on Ubuntu 20.04.5/6 LTS (Focal Fossa) and Ubuntu 22.04.3 (Jammy Jellyfish) with an Intel Core i7-10700K CPU @ 3.80GHz x 16 and 62.5 GiB memory.
 SiMpLE uses a few open-source libraries for reading the algorithm configuration file, Kd-Trees, matrix operations, optimization functions, and CPU threading.
 The installation instructions are detailed below.
@@ -107,7 +137,7 @@ sudo make install
 Alternative options for any of the libraries can be used if desired.
 The code is easy to change.
 
-## Installation
+### Installation
 Clone the repository.
 ```bash
 git clone https://github.com/vb44/SiMpLE.git
@@ -129,7 +159,7 @@ Make the executable.
 make
 ```
 
-## Example
+### Example
 <!-- Show example usage. -->
 The code only works with *.bin* files in the KITTI format.
 However, the code is very easy to modify to suit the desired inputs and outputs.
