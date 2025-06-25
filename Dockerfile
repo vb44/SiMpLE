@@ -25,9 +25,9 @@ WORKDIR ./nanoflann-master/build
 RUN cmake .. && make install
 
 WORKDIR /home
-COPY ./cpp ./cpp
+COPY ./simple ./simple
 WORKDIR ./build
-RUN cmake ../cpp && make
+RUN cmake ../simple && make
 
 FROM shared-dependencies AS final-stage
 

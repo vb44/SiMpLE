@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(SiMpLE)
+project(simple)
 
 add_compile_options(-std=c++17 -O3)
 set(CMAKE_CXX_STANDARD 17)
@@ -11,7 +11,11 @@ find_package(TBB REQUIRED)
 find_package(dlib REQUIRED)
 find_package(Threads REQUIRED)
 find_package(yaml-cpp REQUIRED)
- 
+
+include_directories(
+  include/simple
+)
+
 # Define source files
 set(SOURCES
     src/main.cpp
