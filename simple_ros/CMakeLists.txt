@@ -7,9 +7,10 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 add_executable(lidar_odometry src/lidar_odometry.cpp)
-target_link_libraries(lidar_odometry PRIVATE rclcpp::rclcpp)
+target_link_libraries(lidar_odometry PRIVATE rclcpp::rclcpp ${sensor_msgs_TARGETS})
 
 target_include_directories(lidar_odometry PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
