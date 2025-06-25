@@ -20,6 +20,7 @@ public:
     subPointcloud_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       "input_cloud", 10, std::bind(&LidarOdometry::pointcloudCallback, this, _1));
     pubOdom_ = this->create_publisher<nav_msgs::msg::Odometry>("output_odom", 10);
+    pubMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("output_map", 10);
 
     rNew_ = this->declare_parameter<float>("rNew", 0.5);
     float rMap = this->declare_parameter<float>("rMap", 2.0);
@@ -28,6 +29,7 @@ public:
     float sigma = this->declare_parameter<float>("sigma", 0.3);
     float epsilon = this->declare_parameter<float>("epsilon", 1e-3);
     odomMessage_.header.frame_id = this->declare_parameter<std::string>("odom_frame", "odom");
+    enablePubMap_ = this->declare_parameter<bool>("publish_map", false);
 
     subMap_ = std::make_unique<PointMap>(rMap, rMax_);
     scanToMapRegister_ = std::make_unique<Register>(epsilon, sigma);
@@ -91,22 +93,50 @@ private:
 
     Eigen::Matrix4d hypothesis = utils::homogeneous(roll, pitch, yaw, x, y, z);
 
-    subMap_->updateMap(newScan.getPtCloud(), hypothesis);
-
     odomMessage_.header.stamp = msg->header.stamp;
     odomMessage_.child_frame_id = msg->header.frame_id;
 
     this->pubOdom_->publish(odomMessage_);
+
+    subMap_->updateMap(newScan.getPtCloud(), hypothesis);
+
+    if (enablePubMap_) {
+      auto mapMessage = sensor_msgs::msg::PointCloud2();
+      mapMessage.header.frame_id = odomMessage_.header.frame_id;
+      mapMessage.height = 1;
+      mapMessage.width = subMap_->getPtCloud().size();
+
+      sensor_msgs::PointCloud2Modifier mod(mapMessage);
+      mod.setPointCloud2FieldsByString(1, "xyz");
+      mod.resize(mapMessage.height * mapMessage.width);
+
+      sensor_msgs::PointCloud2Iterator<float> iterX(mapMessage, "x");
+      sensor_msgs::PointCloud2Iterator<float> iterY(mapMessage, "y");
+      sensor_msgs::PointCloud2Iterator<float> iterZ(mapMessage, "z");
+      std::vector<Eigen::Vector4d>::const_iterator points = subMap_->getPtCloud().begin();
+
+      for (; points != subMap_->getPtCloud().end(); ++points, ++iterX, ++iterY, ++iterZ) {
+        *iterX = (*points)[0];
+        *iterY = (*points)[1];
+        *iterZ = (*points)[2];
+      }
+
+      mapMessage.header.stamp = msg->header.stamp;
+
+      this->pubMap_->publish(mapMessage);
+    }
 
     initialised_ = true;
   }
 
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subPointcloud_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdom_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubMap_;
   nav_msgs::msg::Odometry odomMessage_;
 
   float rNew_, rMin_, rMax_;
   bool initialised_ = false;
+  bool enablePubMap_ = false;
 
   std::unique_ptr<PointMap> subMap_;
   std::unique_ptr<Register> scanToMapRegister_;
