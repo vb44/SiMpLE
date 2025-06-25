@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>simple</name>
+  <version>0.0.0</version>
+  <description>Core SiMpLE LiDAR odometry package</description>
+  <maintainer email="v.bhandari@uq.edu.au">Vedant Bhandari</maintainer>
+  <license>MIT</license>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
