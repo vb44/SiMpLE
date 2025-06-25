@@ -8,11 +8,14 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 add_executable(lidar_odometry src/lidar_odometry.cpp)
-target_link_libraries(lidar_odometry PRIVATE simple_lib rclcpp::rclcpp  ${nav_msgs_TARGETS} ${sensor_msgs_TARGETS})
+target_link_libraries(lidar_odometry PRIVATE simple_lib rclcpp::rclcpp tf2::tf2 ${tf2_geometry_msgs_TARGETS}
+	${nav_msgs_TARGETS} ${sensor_msgs_TARGETS})
 target_include_directories(lidar_odometry PRIVATE ../simple/include/simple)
 
 target_include_directories(lidar_odometry PUBLIC
