@@ -55,10 +55,10 @@ void PointCloud::readScan(std::string fileName) {
     }
 
     // Process the PointCloud.
-    processPointCloud_();
+    processPointCloud();
 }
 
-void PointCloud::processPointCloud_() {
+void PointCloud::processPointCloud() {
     // Check if the PointCloud needs to be corrected.
     // Apply the calibration factor as explained in IMLS-SLAM, CT-ICP, and KISS-ICP.
     if (kitti_) {

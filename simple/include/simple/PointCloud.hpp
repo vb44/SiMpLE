@@ -59,6 +59,13 @@ class PointCloud {
         void readScan(std::string fileName);
 
         /**
+         * @brief Apply the scan correction factor if required and subsample
+         *        the scan.
+         *
+         */
+        void processPointCloud();
+
+        /**
          * @brief Get the point cloud.
          * 
          * @return const std::vector<Eigen::Vector4d>& The point cloud.
@@ -112,13 +119,6 @@ class PointCloud {
     private:
         // Boolean to apply the correcttion factor to the KITTI scans.
         bool kitti_;
-
-        /**
-         * @brief Apply the scan correction factor if required and subsample
-         *        the scan.
-         * 
-         */
-        void processPointCloud_();
 
         /**
          * @brief Apply a correcttion factor to fix the KITTI scans.
