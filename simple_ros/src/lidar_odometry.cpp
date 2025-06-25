@@ -10,6 +10,13 @@ public:
     subPointcloud_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       "input_cloud", 10, std::bind(&LidarOdometry::pointcloudCallback, this, _1));
     pubOdom_ = this->create_publisher<nav_msgs::msg::Odometry>("output_odom", 10);
+
+    float rNew = this->declare_parameter<float>("rNew", 0.5);
+    float rMap = this->declare_parameter<float>("rMap", 2.0);
+    float rMin = this->declare_parameter<float>("rMin", 5.0);
+    float rMax = this->declare_parameter<float>("rMax", 120);
+    float sigma = this->declare_parameter<float>("sigma", 0.3);
+    float epsilon = this->declare_parameter<float>("epsilon", 1e-3);
   }
 
 private:
