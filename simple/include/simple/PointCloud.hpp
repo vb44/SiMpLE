@@ -43,6 +43,15 @@ class PointCloud {
         ~PointCloud() = default;
 
         /**
+         * @brief Add point to pointcloud if it is within the maximum and mininmum sensor ranges
+         *
+         * @param x point x coordinate.
+         * @param y point y coordinate.
+         * @param z point z coordinate.
+         */
+        void addPoint(double x, double y, double z);
+
+        /**
          * @brief Read a new .bin scan file.
          * 
          * @param fileName Name of the file to read.

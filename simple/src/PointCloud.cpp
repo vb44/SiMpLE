@@ -19,6 +19,14 @@ const NanoflannPointsContainer<double>& PointCloud::getPcForKdTree() const {
     return pcForKdTree_;
 }
 
+void PointCloud::addPoint(double x, double y, double z) {
+    double normSquared = pow(x, 2) + pow(y, 2) + pow(z, 2);
+    if ((normSquared > minSensorRange2_) && (normSquared < maxSensorRange2_)) {
+      allPoints_.insert(ptCloud_.size());
+      ptCloud_.push_back({x, y, z, 1});
+    }
+}
+
 void PointCloud::readScan(std::string fileName) {
     ptCloud_.clear();
     allPoints_.clear();
