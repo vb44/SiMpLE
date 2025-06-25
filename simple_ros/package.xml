@@ -8,6 +8,8 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <build_depend>simple</build_depend>
+
   <depend>rclcpp</depend>
   <depend>nav_msgs</depend>
   <depend>sensor_msgs</depend>

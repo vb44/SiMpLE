@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
+add_subdirectory(../simple simple_build)
 project(simple_ros)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -11,7 +12,8 @@ find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 add_executable(lidar_odometry src/lidar_odometry.cpp)
-target_link_libraries(lidar_odometry PRIVATE rclcpp::rclcpp ${nav_msgs_TARGETS} ${sensor_msgs_TARGETS})
+target_link_libraries(lidar_odometry PRIVATE simple_lib rclcpp::rclcpp  ${nav_msgs_TARGETS} ${sensor_msgs_TARGETS})
+target_include_directories(lidar_odometry PRIVATE ../simple/include/simple)
 
 target_include_directories(lidar_odometry PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
