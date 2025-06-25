@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>simple_ros</name>
+  <version>0.0.0</version>
+  <description>ROS2 based SiMpLE LiDAR Odometry module</description>
+  <maintainer email="alon.nusem@gmail.com">Alon Nusem</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
