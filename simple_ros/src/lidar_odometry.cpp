@@ -4,6 +4,9 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2/utils.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2/LinearMath/Vector3.hpp>
 
 #include "PointCloud.hpp"
 #include "PointMap.hpp"
@@ -44,30 +47,39 @@ private:
 
     newScan.processPointCloud();
 
-    double roll = 0, pitch = 0, yaw = 0;
+    double x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0;
 
     if (initialised_) {
+      double timePassed = (msg->header.stamp.sec + msg->header.stamp.nanosec / 1e9)
+        - (odomMessage_.header.stamp.sec + odomMessage_.header.stamp.nanosec / 1e9);
       scanToMapRegister_->registerScan(newScan.getPtCloud(), subMap_->getPcForKdTree());
       column_vector res = scanToMapRegister_->getRegResult();
-
-      double time_passed = (msg->header.stamp.sec + msg->header.stamp.nanosec / 1e9) - (odomMessage_.header.stamp.sec + odomMessage_.header.stamp.nanosec / 1e9);
-      odomMessage_.pose.pose.position.x = res(3);
-      odomMessage_.pose.pose.position.y = res(4);
-      odomMessage_.pose.pose.position.z = res(5);
 
       roll = res(0);
       pitch = res(1);
       yaw = res(2);
+      x = res(3);
+      y = res(4);
+      z = res(5);
 
-      tf2::Quaternion q;
-      q.setRPY(res(0), res(1), res(2));
-      odomMessage_.pose.pose.orientation = tf2::toMsg(q);
+      tf2::Quaternion orientation;
+      orientation.setRPY(roll, pitch, yaw);
+
+      tf2::Vector3 relativeTranslation = tf2::Vector3(x - odomMessage_.pose.pose.position.x,
+          y - odomMessage_.pose.pose.position.y, z - odomMessage_.pose.pose.position.z);
+      tf2::Vector3 transformedLinearVelocity = tf2::quatRotate(orientation.inverse(), relativeTranslation / timePassed);
+
+      odomMessage_.pose.pose.position.x = x;
+      odomMessage_.pose.pose.position.y = y;
+      odomMessage_.pose.pose.position.z = z;
+      odomMessage_.twist.twist.linear.x = transformedLinearVelocity[0];
+      odomMessage_.twist.twist.linear.y = transformedLinearVelocity[1];
+      odomMessage_.twist.twist.linear.z = transformedLinearVelocity[2];
+
+      odomMessage_.pose.pose.orientation = tf2::toMsg(orientation);
     }
 
-    Eigen::Matrix4d hypothesis = utils::homogeneous(roll, pitch, yaw, 
-        odomMessage_.pose.pose.position.x, 
-        odomMessage_.pose.pose.position.y, 
-        odomMessage_.pose.pose.position.z);
+    Eigen::Matrix4d hypothesis = utils::homogeneous(roll, pitch, yaw, x, y, z);
 
     subMap_->updateMap(newScan.getPtCloud(), hypothesis);
 
