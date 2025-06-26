@@ -31,6 +31,10 @@ public:
     odomMessage_.header.frame_id = this->declare_parameter<std::string>("odom_frame", "odom");
     enablePubMap_ = this->declare_parameter<bool>("publish_map", false);
 
+    if (enablePubMap_) {
+      pubMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("output_map", 10);
+    }
+
     subMap_ = std::make_unique<PointMap>(rMap, rMax_);
     scanToMapRegister_ = std::make_unique<Register>(epsilon, sigma);
   }
