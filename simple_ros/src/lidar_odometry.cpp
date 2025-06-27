@@ -62,12 +62,19 @@ private:
       y = res(4);
       z = res(5);
 
-      tf2::Quaternion orientation;
+      tf2::Quaternion orientation, past_orientation;
       orientation.setRPY(roll, pitch, yaw);
+      tf2::fromMsg(odomMessage_.pose.pose.orientation, past_orientation);
 
       tf2::Vector3 relativeTranslation = tf2::Vector3(x - odomMessage_.pose.pose.position.x,
           y - odomMessage_.pose.pose.position.y, z - odomMessage_.pose.pose.position.z);
       tf2::Vector3 transformedLinearVelocity = tf2::quatRotate(orientation.inverse(), relativeTranslation / timePassed);
+
+      tf2::Quaternion relativeRotationQuat = orientation *  past_orientation.inverse();
+      tf2::Matrix3x3 m(relativeRotationQuat);
+      tf2::Vector3 relativeRotation;
+      m.getRPY(relativeRotation[0], relativeRotation[1], relativeRotation[2]);
+      tf2::Vector3 transformedAngularVelocity = tf2::quatRotate(orientation.inverse(), relativeRotation / timePassed);
 
       odomMessage_.pose.pose.position.x = x;
       odomMessage_.pose.pose.position.y = y;
@@ -77,6 +84,9 @@ private:
       odomMessage_.twist.twist.linear.z = transformedLinearVelocity[2];
 
       odomMessage_.pose.pose.orientation = tf2::toMsg(orientation);
+      odomMessage_.twist.twist.angular.x = transformedAngularVelocity[0];
+      odomMessage_.twist.twist.angular.y = transformedAngularVelocity[1];
+      odomMessage_.twist.twist.angular.z = transformedAngularVelocity[2];
     }
 
     Eigen::Matrix4d hypothesis = utils::homogeneous(roll, pitch, yaw, x, y, z);
