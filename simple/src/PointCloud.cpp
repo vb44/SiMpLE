@@ -19,6 +19,14 @@ const NanoflannPointsContainer<double>& PointCloud::getPcForKdTree() const {
     return pcForKdTree_;
 }
 
+void PointCloud::addPoint(double x, double y, double z) {
+    double normSquared = pow(x, 2) + pow(y, 2) + pow(z, 2);
+    if ((normSquared > minSensorRange2_) && (normSquared < maxSensorRange2_)) {
+      allPoints_.insert(ptCloud_.size());
+      ptCloud_.push_back({x, y, z, 1});
+    }
+}
+
 void PointCloud::readScan(std::string fileName) {
     ptCloud_.clear();
     allPoints_.clear();
@@ -47,10 +55,10 @@ void PointCloud::readScan(std::string fileName) {
     }
 
     // Process the PointCloud.
-    processPointCloud_();
+    processPointCloud();
 }
 
-void PointCloud::processPointCloud_() {
+void PointCloud::processPointCloud() {
     // Check if the PointCloud needs to be corrected.
     // Apply the calibration factor as explained in IMLS-SLAM, CT-ICP, and KISS-ICP.
     if (kitti_) {

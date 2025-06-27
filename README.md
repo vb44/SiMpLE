@@ -145,7 +145,7 @@ git clone https://github.com/vb44/SiMpLE.git
 
 Create a build folder in the repository.
 ```bash
-cd SiMpLE/cpp
+cd SiMpLE/simple
 mkdir build && cd build
 ```
 
