@@ -9,40 +9,28 @@ ObjectiveFunction::ObjectiveFunction(double rewardParam_, const std::vector<Eige
 }
 
 double ObjectiveFunction::operator()(const column_vector& m) const {
-    // Transformation hypothesis from the new scan to the existing map.
     Eigen::Matrix4d hypothesis = utils::homogeneous(m(0), m(1), m(2), m(3), m(4), m(5));
- 
-    // Transform the new scan using the transformation hypothesis.
-    std::vector<Eigen::Vector4d> scanTf_(scan_.size());
-    
-    // Set the registration score to zero.
-    double score = 0;
-    std::vector<double> scores(scanTf_.size(), 0.0);
-    size_t numResults = 1;
+    size_t n = scan_.size();
 
-    // Calculate the hypothesis reward.
-    // Loop through each transformed target scan and find the closest point in the source scan.
-    tbb::parallel_for(
-    tbb::blocked_range<int>(0, scan_.size()),
-    [&](tbb::blocked_range<int> r) {
-        for (unsigned int i = r.begin(); i < r.end(); i++) {
-            uint32_t retIndex;
-            double outDistSqr;
-            Eigen::Vector4d ptTf = hypothesis*scan_[i];
-            double query_pt[] = {ptTf(0), ptTf(1), ptTf(2)};
-            
-            // Search for the closest point.
-            subMapKdTree_->knnSearch(&query_pt[0], numResults, &retIndex, &outDistSqr);
+    double score = tbb::parallel_reduce(
+        tbb::blocked_range<size_t>(0, n),
+        0.0,
+        [&](const tbb::blocked_range<size_t>& r, double local_sum) -> double {
+            for (size_t i = r.begin(); i < r.end(); ++i) {
+                // Transform point as 3D vector
+                // Eigen::Vector4d ptTf = hypothesis*scan_[i];
+                Eigen::Vector3d pt = scan_[i].head<3>();
+                Eigen::Vector3d ptTf = hypothesis.block<3, 3>(0, 0) * pt + hypothesis.block<3, 1>(0, 3);
+                double query_pt[3] = {ptTf(0), ptTf(1), ptTf(2)};
+                uint32_t retIndex;
+                double outDistSqr;
+                subMapKdTree_->knnSearch(query_pt, 1, &retIndex, &outDistSqr);
 
-            // Score the difference between the current and nearest point, Equation 5.
-            scores[i] = exp(-outDistSqr * rewardParam_);
-        }
-    });
-
-    // Deterministic results, sum the scores.
-    for (auto& n: scores) {
-        score -= n;
-    }
-        
+                local_sum -= std::exp(-outDistSqr * rewardParam_);
+            }
+            return local_sum;
+        },
+        std::plus<double>()
+    );
     return score;
 }

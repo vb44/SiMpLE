@@ -18,6 +18,8 @@
 class PointCloud {
 
     public:
+        using Voxel = Eigen::Vector3i;
+
         /**
          * @brief Construct a new Scan object.
          * 
@@ -57,6 +59,8 @@ class PointCloud {
          * @param fileName Name of the file to read.
          */
         void readScan(std::string fileName);
+        
+        void readScanAndSubsample(std::string fileName);
 
         /**
          * @brief Apply the scan correction factor if required and subsample
@@ -84,6 +88,7 @@ class PointCloud {
         static constexpr int NUM_COLUMNS_BIN = 4;
 
         // Point cloud subsample radius.
+        double subsampleRadius_;
         double subsampleRadius2_; // squared (^2)
         
         // Maximum range of the points in the scan.
@@ -91,6 +96,9 @@ class PointCloud {
 
         // Minimum range of the points in the scan.
         double minSensorRange2_; // squared (^2)
+        
+        int dim_;
+        int offset_;
 
         // A container used for radially subsampling the points.
         std::set<int> allPoints_;
@@ -100,6 +108,8 @@ class PointCloud {
 
         // Container for a nanoflann-friendly point cloud.
         NanoflannPointsContainer<double> pcForKdTree_;
+
+        std::vector<std::vector<std::vector<bool>>> gridOccupied_;
 
         /**
          * @brief Radially subsample the point cloud.

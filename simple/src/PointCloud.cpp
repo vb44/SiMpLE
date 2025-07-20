@@ -5,10 +5,17 @@ PointCloud::PointCloud(double maxSensorRange) :
 }
 
 PointCloud::PointCloud(double subsampleRadius, double maxSensorRange, double minSensorRange, bool kitti) :
+      subsampleRadius_(subsampleRadius),
       subsampleRadius2_(subsampleRadius * subsampleRadius),
       maxSensorRange2_(maxSensorRange * maxSensorRange),
       minSensorRange2_(minSensorRange * minSensorRange),
       kitti_(kitti) {
+    
+    // Compute the dimension of point cloud (pc) grid.
+    dim_ = maxSensorRange/(subsampleRadius) * 2 + 1;
+    offset_ = maxSensorRange / subsampleRadius;
+
+    gridOccupied_.resize(dim_, std::vector<std::vector<bool> >(dim_, std::vector<bool>(dim_, false)));
 }
 
 const std::vector<Eigen::Vector4d>& PointCloud::getPtCloud() const {
@@ -56,6 +63,54 @@ void PointCloud::readScan(std::string fileName) {
 
     // Process the PointCloud.
     processPointCloud();
+}
+
+void PointCloud::readScanAndSubsample(std::string fileName) {
+    ptCloud_.clear();
+    std::ifstream file(fileName, std::ios::in | std::ios::binary);
+
+    float item;
+    std::vector<double> ptsFromFile;
+    
+    while (file.read((char*)&item, sizeof(item))) {
+        ptsFromFile.push_back(item);
+    }
+
+    unsigned int numPts = ptsFromFile.size() / NUM_COLUMNS_BIN; // .bin format
+ 
+    int x, y, z;
+    Eigen::Vector3d pt;
+    for (auto& plane : gridOccupied_)
+    {
+        for (auto& row : plane)
+        {
+            std::fill(row.begin(), row.end(), false);
+        }
+    }
+    for (unsigned int i = 0; i < ptsFromFile.size(); i+=NUM_COLUMNS_BIN) {
+
+        // Save the pt if it is within the maximum and mininmum sensor ranges.
+        double normSquared = pow(ptsFromFile[i], 2) + pow(ptsFromFile[i+1], 2) + pow(ptsFromFile[i+2], 2);
+        if ((normSquared > minSensorRange2_) && (normSquared < maxSensorRange2_)) {
+            
+            pt << ptsFromFile[i], ptsFromFile[i+1], ptsFromFile[i+2];
+            auto voxel = (pt / subsampleRadius_).array().floor().cast<int>();
+            x = voxel(0) + offset_;
+            y = voxel(1) + offset_;
+            z = voxel(2) + offset_;
+
+            if (!gridOccupied_[x][y][z])
+            {
+                gridOccupied_[x][y][z] = true;
+                ptCloud_.push_back({ptsFromFile[i], ptsFromFile[i+1], ptsFromFile[i+2], 1});
+            }            
+        }
+    }
+
+    // Process the PointCloud.
+    if (kitti_) {
+        correctKittiScan_();
+    }
 }
 
 void PointCloud::processPointCloud() {

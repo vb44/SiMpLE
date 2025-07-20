@@ -41,9 +41,12 @@ int main(int argc, char* argv[]) {
     // result.
     for (unsigned int scanNum = 0; scanNum < numScans; scanNum++) {
         // Step 1: Read the scan and subsample the scan at rNew.
-        newScan.readScan(scanFiles[scanNum]);
-
-         // Step 2: Input point cloud to local map registration.
+        auto startReadScan = std::chrono::high_resolution_clock::now();
+        // newScan.readScan(scanFiles[scanNum]);
+        newScan.readScanAndSubsample(scanFiles[scanNum]);
+        
+        // Step 2: Input point cloud to local map registration.
+        auto startRegistration = std::chrono::high_resolution_clock::now();
         if (scanNum > 0) {
             scanToMapRegister.registerScan(newScan.getPtCloud(), subMap.getPcForKdTree());
 
@@ -55,16 +58,22 @@ int main(int argc, char* argv[]) {
         }
         
         // Step 3: Update the local map.
+        auto startMapUpdate = std::chrono::high_resolution_clock::now();
         // Transform the current scan to the current pose estimate.
         Eigen::Matrix4d hypothesis = utils::homogeneous(poseEstimates[scanNum][0], poseEstimates[scanNum][1],
                                                         poseEstimates[scanNum][2], poseEstimates[scanNum][3],
                                                         poseEstimates[scanNum][4], poseEstimates[scanNum][5]);
-
+            
         subMap.updateMap(newScan.getPtCloud(), hypothesis);
+        auto finsh = std::chrono::high_resolution_clock::now();
 
         // Print the progress to the terminal.
         // Comment printProgress to remove this. 
         utils::printProgress((double(scanNum) / numScans));
+
+        // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(startRegistration-startReadScan).count() << " "
+        //           << std::chrono::duration_cast<std::chrono::milliseconds>(startMapUpdate-startRegistration).count() << " "
+        //           << std::chrono::duration_cast<std::chrono::milliseconds>(finsh-startMapUpdate).count() << " " << newScan.getPtCloud().size() << std::endl;
     }
     // End with a new line character for the progress bar.
     printf("\n");
