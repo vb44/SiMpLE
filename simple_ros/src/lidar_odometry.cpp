@@ -40,6 +40,31 @@ public:
   }
 
 private:
+  void publishMap(std_msgs::msg::Header header) {
+    auto mapMessage = sensor_msgs::msg::PointCloud2();
+    mapMessage.header = header;
+    mapMessage.header.frame_id = odomMessage_.header.frame_id;
+    mapMessage.height = 1;
+    mapMessage.width = subMap_->getPtCloud().size();
+
+    sensor_msgs::PointCloud2Modifier mod(mapMessage);
+    mod.setPointCloud2FieldsByString(1, "xyz");
+    mod.resize(mapMessage.height * mapMessage.width);
+
+    sensor_msgs::PointCloud2Iterator<float> iterX(mapMessage, "x");
+    sensor_msgs::PointCloud2Iterator<float> iterY(mapMessage, "y");
+    sensor_msgs::PointCloud2Iterator<float> iterZ(mapMessage, "z");
+    std::vector<Eigen::Vector4d>::const_iterator points = subMap_->getPtCloud().begin();
+
+    for (; points != subMap_->getPtCloud().end(); ++points, ++iterX, ++iterY, ++iterZ) {
+      *iterX = (*points)[0];
+      *iterY = (*points)[1];
+      *iterZ = (*points)[2];
+    }
+
+    this->pubMap_->publish(mapMessage);
+  }
+
   void pointcloudCallback(sensor_msgs::msg::PointCloud2::SharedPtr msg) {
     PointCloud newScan = PointCloud(rNew_, rMax_, rMin_, false);
 
@@ -104,30 +129,9 @@ private:
 
     subMap_->updateMap(newScan.getPtCloud(), hypothesis);
 
+
     if (enablePubMap_) {
-      auto mapMessage = sensor_msgs::msg::PointCloud2();
-      mapMessage.header.frame_id = odomMessage_.header.frame_id;
-      mapMessage.height = 1;
-      mapMessage.width = subMap_->getPtCloud().size();
-
-      sensor_msgs::PointCloud2Modifier mod(mapMessage);
-      mod.setPointCloud2FieldsByString(1, "xyz");
-      mod.resize(mapMessage.height * mapMessage.width);
-
-      sensor_msgs::PointCloud2Iterator<float> iterX(mapMessage, "x");
-      sensor_msgs::PointCloud2Iterator<float> iterY(mapMessage, "y");
-      sensor_msgs::PointCloud2Iterator<float> iterZ(mapMessage, "z");
-      std::vector<Eigen::Vector4d>::const_iterator points = subMap_->getPtCloud().begin();
-
-      for (; points != subMap_->getPtCloud().end(); ++points, ++iterX, ++iterY, ++iterZ) {
-        *iterX = (*points)[0];
-        *iterY = (*points)[1];
-        *iterZ = (*points)[2];
-      }
-
-      mapMessage.header.stamp = msg->header.stamp;
-
-      this->pubMap_->publish(mapMessage);
+      publishMap(odomMessage_.header);
     }
 
     initialised_ = true;
