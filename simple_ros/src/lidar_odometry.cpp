@@ -4,7 +4,9 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 #include <tf2/utils.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Vector3.hpp>
@@ -29,6 +31,10 @@ public:
     rMax_ = this->declare_parameter<float>("rMax", 120);
     float sigma = this->declare_parameter<float>("sigma", 0.3);
     float epsilon = this->declare_parameter<float>("epsilon", 1e-3);
+    // Odometry and TF child_frame_id, uses input_cloud.header.frame_id if not provided.
+    // This will transform results by looking up the transform between child_frame and input_cloud.header.frame_id"
+    childFrame_ = this->declare_parameter("child_frame", "");
+    // Odometry and TF header.frame_id
     odomMessage_.header.frame_id = this->declare_parameter<std::string>("odom_frame", "odom");
     enablePubOdom_ = this->declare_parameter<bool>("publish_odom", true);
     enablePubTF_ = this->declare_parameter<bool>("publish_map", false);
@@ -40,6 +46,11 @@ public:
 
     if (enablePubTF_) {
       tfBroadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    }
+
+    if (!childFrame_.empty()) {
+      tfBuffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+      tfListener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer_);
     }
 
     if (enablePubMap_) {
@@ -106,6 +117,32 @@ private:
 
       tf2::Quaternion orientation, past_orientation;
       orientation.setRPY(roll, pitch, yaw);
+      tf2::Vector3 translation = tf2::Vector3(x, y, z);
+
+      if (!childFrame_.empty()) {
+        geometry_msgs::msg::TransformStamped t;
+        std::string fromFrameRel = msg->header.frame_id;
+        std::string toFrameRel = childFrame_;
+        try {
+          t = tfBuffer_->lookupTransform(toFrameRel, fromFrameRel, msg->header.stamp);
+        } catch (const tf2::TransformException & ex) {
+          RCLCPP_INFO(this->get_logger(), "Could not transform %s to %s: %s",
+			toFrameRel.c_str(), fromFrameRel.c_str(), ex.what());
+          return;
+        }
+
+	tf2::Transform transform = tf2::Transform(orientation, translation);
+	tf2::Transform offsetTransform;
+	tf2::fromMsg(t.transform, offsetTransform);
+	transform *= offsetTransform;
+
+	orientation = transform.getRotation();
+	translation = transform.getOrigin();
+        odomMessage_.child_frame_id = childFrame_;
+      } else {
+        odomMessage_.child_frame_id = msg->header.frame_id;
+      }
+
       tf2::fromMsg(odomMessage_.pose.pose.orientation, past_orientation);
 
       tf2::Vector3 relativeTranslation = tf2::Vector3(x - odomMessage_.pose.pose.position.x,
@@ -118,9 +155,9 @@ private:
       m.getRPY(relativeRotation[0], relativeRotation[1], relativeRotation[2]);
       tf2::Vector3 transformedAngularVelocity = tf2::quatRotate(orientation.inverse(), relativeRotation / timePassed);
 
-      odomMessage_.pose.pose.position.x = x;
-      odomMessage_.pose.pose.position.y = y;
-      odomMessage_.pose.pose.position.z = z;
+      odomMessage_.pose.pose.position.x = translation[1];
+      odomMessage_.pose.pose.position.y = translation[1];
+      odomMessage_.pose.pose.position.z = translation[2];
       odomMessage_.twist.twist.linear.x = transformedLinearVelocity[0];
       odomMessage_.twist.twist.linear.y = transformedLinearVelocity[1];
       odomMessage_.twist.twist.linear.z = transformedLinearVelocity[2];
@@ -134,7 +171,6 @@ private:
     Eigen::Matrix4d hypothesis = utils::homogeneous(roll, pitch, yaw, x, y, z);
 
     odomMessage_.header.stamp = msg->header.stamp;
-    odomMessage_.child_frame_id = msg->header.frame_id;
 
     if (enablePubOdom_) {
       this->pubOdom_->publish(odomMessage_);
@@ -164,8 +200,11 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subPointcloud_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdom_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tfBroadcaster_;
+  std::shared_ptr<tf2_ros::TransformListener> tfListener_;
+  std::unique_ptr<tf2_ros::Buffer> tfBuffer_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubMap_;
   nav_msgs::msg::Odometry odomMessage_;
+  std::string childFrame_;
 
   float rNew_, rMin_, rMax_;
   bool initialised_ = false;
