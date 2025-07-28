@@ -4,6 +4,7 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2/utils.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Vector3.hpp>
@@ -29,7 +30,17 @@ public:
     float sigma = this->declare_parameter<float>("sigma", 0.3);
     float epsilon = this->declare_parameter<float>("epsilon", 1e-3);
     odomMessage_.header.frame_id = this->declare_parameter<std::string>("odom_frame", "odom");
+    enablePubOdom_ = this->declare_parameter<bool>("publish_odom", true);
+    enablePubTF_ = this->declare_parameter<bool>("publish_map", false);
     enablePubMap_ = this->declare_parameter<bool>("publish_map", false);
+
+    if (enablePubOdom_) {
+      pubOdom_ = this->create_publisher<nav_msgs::msg::Odometry>("output_odom", 10);
+    }
+
+    if (enablePubTF_) {
+      tfBroadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    }
 
     if (enablePubMap_) {
       pubMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("output_map", 10);
@@ -125,10 +136,23 @@ private:
     odomMessage_.header.stamp = msg->header.stamp;
     odomMessage_.child_frame_id = msg->header.frame_id;
 
-    this->pubOdom_->publish(odomMessage_);
+    if (enablePubOdom_) {
+      this->pubOdom_->publish(odomMessage_);
+    }
+
+    if (enablePubTF_) {
+      geometry_msgs::msg::TransformStamped transform;
+      transform.header = odomMessage_.header;
+      transform.child_frame_id = odomMessage_.child_frame_id;
+      transform.transform.translation.x = odomMessage_.pose.pose.position.x;
+      transform.transform.translation.y = odomMessage_.pose.pose.position.y;
+      transform.transform.translation.z = odomMessage_.pose.pose.position.z;
+      transform.transform.rotation = odomMessage_.pose.pose.orientation;
+
+      tfBroadcaster_->sendTransform(transform);
+    }
 
     subMap_->updateMap(newScan.getPtCloud(), hypothesis);
-
 
     if (enablePubMap_) {
       publishMap(odomMessage_.header);
@@ -139,12 +163,13 @@ private:
 
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subPointcloud_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdom_;
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tfBroadcaster_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubMap_;
   nav_msgs::msg::Odometry odomMessage_;
 
   float rNew_, rMin_, rMax_;
   bool initialised_ = false;
-  bool enablePubMap_ = false;
+  bool enablePubOdom_, enablePubTF_, enablePubMap_;
 
   std::unique_ptr<PointMap> subMap_;
   std::unique_ptr<Register> scanToMapRegister_;
