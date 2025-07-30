@@ -102,6 +102,22 @@ private:
 
     double x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0;
 
+    tf2::Transform frameTransform;
+    if (!childFrame_.empty()) {
+      geometry_msgs::msg::TransformStamped frameOffset;
+      std::string fromFrameRel = msg->header.frame_id;
+      std::string toFrameRel = childFrame_;
+      try {
+        frameOffset = tfBuffer_->lookupTransform(toFrameRel, fromFrameRel, msg->header.stamp);
+      } catch (const tf2::TransformException & ex) {
+        RCLCPP_INFO(this->get_logger(), "Could not transform %s to %s: %s",
+			toFrameRel.c_str(), fromFrameRel.c_str(), ex.what());
+        return;
+      }
+
+      tf2::fromMsg(frameOffset.transform, frameTransform);
+    }
+
     if (initialised_) {
       double timePassed = (msg->header.stamp.sec + msg->header.stamp.nanosec / 1e9)
         - (odomMessage_.header.stamp.sec + odomMessage_.header.stamp.nanosec / 1e9);
@@ -120,22 +136,8 @@ private:
       tf2::Vector3 translation = tf2::Vector3(x, y, z);
 
       if (!childFrame_.empty()) {
-        geometry_msgs::msg::TransformStamped t;
-        std::string fromFrameRel = msg->header.frame_id;
-        std::string toFrameRel = childFrame_;
-        try {
-          t = tfBuffer_->lookupTransform(toFrameRel, fromFrameRel, msg->header.stamp);
-        } catch (const tf2::TransformException & ex) {
-          RCLCPP_INFO(this->get_logger(), "Could not transform %s to %s: %s",
-			toFrameRel.c_str(), fromFrameRel.c_str(), ex.what());
-          return;
-        }
-
 	tf2::Transform transform = tf2::Transform(orientation, translation);
-	tf2::Transform offsetTransform;
-	tf2::fromMsg(t.transform, offsetTransform);
-	transform *= offsetTransform;
-
+	transform *= frameTransform;
 	orientation = transform.getRotation();
 	translation = transform.getOrigin();
         odomMessage_.child_frame_id = childFrame_;
