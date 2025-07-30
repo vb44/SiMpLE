@@ -7,8 +7,8 @@ PointMap::PointMap(double mapSubsampleRadius, double maxSensorRange)
     subsampleRadius2_ = mapSubsampleRadius * mapSubsampleRadius;
 
     // Compute the dimension of point cloud (pc) grid.
-    dim_ = maxSensorRange/(mapSubsampleRadius) * 2 + 1;
-    offset_ = maxSensorRange / mapSubsampleRadius;
+    dim_ = std::round(maxSensorRange/mapSubsampleRadius) * 2 + 1;
+    offset_ = std::round(maxSensorRange/mapSubsampleRadius);
 
     gridOccupied_.resize(dim_, std::vector<std::vector<bool> >(dim_, std::vector<bool>(dim_, false)));
 }
@@ -54,7 +54,10 @@ void PointMap::updateMap(const std::vector<Eigen::Vector4d> &pts, const Eigen::M
             y = voxel(1) + offset_ - sY;
             z = voxel(2) + offset_ - sZ;
 
-            if (!gridOccupied_[x][y][z])
+            if (x > -1 && x < dim_ &&
+                y > -1 && y < dim_ &&
+                z > -1 && z < dim_ &&
+                !gridOccupied_[x][y][z])
             {
                 gridOccupied_[x][y][z] = true;
                 tempMap.push_back({ptCloud_[i][0], ptCloud_[i][1], ptCloud_[i][2], 1});

@@ -11,9 +11,9 @@ PointCloud::PointCloud(double subsampleRadius, double maxSensorRange, double min
       minSensorRange2_(minSensorRange * minSensorRange),
       kitti_(kitti) {
     
-    // Compute the dimension of point cloud (pc) grid.
-    dim_ = maxSensorRange/(subsampleRadius) * 2 + 1;
-    offset_ = maxSensorRange / subsampleRadius;
+    // Compute the dimension of point cloud grid.
+    dim_ = std::round(maxSensorRange/subsampleRadius) * 2 + 1;
+    offset_ = std::round(maxSensorRange/subsampleRadius);
 
     gridOccupied_.resize(dim_, std::vector<std::vector<bool> >(dim_, std::vector<bool>(dim_, false)));
 }
@@ -98,12 +98,15 @@ void PointCloud::readScanAndSubsample(std::string fileName) {
             x = voxel(0) + offset_;
             y = voxel(1) + offset_;
             z = voxel(2) + offset_;
-
-            if (!gridOccupied_[x][y][z])
+            
+            if (x > -1 && x < dim_ &&
+                y > -1 && y < dim_ &&
+                z > -1 && z < dim_ &&
+                !gridOccupied_[x][y][z])
             {
                 gridOccupied_[x][y][z] = true;
                 ptCloud_.push_back({ptsFromFile[i], ptsFromFile[i+1], ptsFromFile[i+2], 1});
-            }            
+            }
         }
     }
 
