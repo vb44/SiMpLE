@@ -63,8 +63,8 @@ namespace utils {
                          << std::endl
                          << "scansFolderPath        = " << "\"" <<  config.getScanPath()  << "\"" << ";" << std::endl
                          << "sigma                  = " << config.getSigma() << ";" << " % [m]" << std::endl
-                         << "rMap                   = " << config.getRMap()  << ";" << " % [m]" << std::endl
-                         << "rNew                   = " << config.getRNew()  << ";" << " % [m]" << std::endl
+                         << "voxelSizeScan          = " << config.getVoxelSizeScan()  << ";" << " % [m]" << std::endl
+                         << "voxelSizeMap           = " << config.getVoxelSizeMap()  << ";" << " % [m]" << std::endl
                          << "convergenceTolerance   = " << config.getConvergenceTol() << ";" << std::endl
                          << "maxSensorRange         = " << config.getMaxSensorRange() << ";" << " % [m]" << std::endl
                          << "minSensorRange         = " << config.getMinSensorRange() << ";" << " % [m]" << std::endl

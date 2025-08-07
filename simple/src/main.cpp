@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
     auto startReg = std::chrono::high_resolution_clock::now();
 
     // Container for a new scan.
-    PointCloud newScan(config.getRNew(), config.getMaxSensorRange(), config.getMinSensorRange(), config.getKitti());
-    PointMap subMap(config.getRMap(), config.getMaxSensorRange());
+    PointCloud newScan(config.getVoxelSizeScan(), config.getMaxSensorRange(), config.getMinSensorRange(), config.getKitti());
+    PointMap subMap(config.getVoxelSizeMap(), config.getMaxSensorRange());
     Register scanToMapRegister(config.getConvergenceTol(), config.getSigma());
 
     // Loop over all input scans, update the submap, and save the registration

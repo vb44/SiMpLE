@@ -13,8 +13,8 @@ int ConfigParser::parseConfig() {
         YAML::Node configFromYaml = YAML::LoadFile(yamlFilePath_);
         kitti_ = configFromYaml["kitti"].as<bool>();
         sigma_ = configFromYaml["sigma"].as<double>();
-        rMap_ = configFromYaml["rMap"].as<double>();
-        rNew_ = configFromYaml["rNew"].as<double>();
+        voxelSizeMap_ = configFromYaml["voxelSizeMap"].as<double>();
+        voxelSizeScan_ = configFromYaml["voxelSizeScan"].as<double>();
         convergenceTol_ = configFromYaml["convergenceTol"].as<double>();
         maxSensorRange_ = configFromYaml["maxSensorRange"].as<double>();
         minSensorRange_ = configFromYaml["minSensorRange"].as<double>();
@@ -39,12 +39,12 @@ const double ConfigParser::getSigma() const {
     return sigma_;
 }
 
-const double ConfigParser::getRMap() const {
-    return rMap_;
+const double ConfigParser::getVoxelSizeMap() const {
+    return voxelSizeMap_;
 }
 
-const double ConfigParser::getRNew() const {
-    return rNew_;
+const double ConfigParser::getVoxelSizeScan() const {
+    return voxelSizeScan_;
 }
 
 const double ConfigParser::getConvergenceTol() const {

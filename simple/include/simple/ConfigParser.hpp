@@ -53,20 +53,20 @@ class ConfigParser {
         const double getSigma() const;
 
         /**
-         * @brief Get the spatial separation used to subsample the existing
+         * @brief Get the voxel resolution used to subsample the existing
          *        map.
          * 
-         * @return double The spatial separation.
+         * @return double The voxel resolution for the map.
          */
-        const double getRMap() const;
+        const double getVoxelSizeMap() const;
 
         /**
-         * @brief Get the spatial separation used to subsample new point cloud
+         * @brief Get the voxel resolution used to subsample new point cloud
          *        data.
          * 
-         * @return double The spatial separation.
+         * @return double The voxel resolution for the scan.
          */
-        const double getRNew() const;
+        const double getVoxelSizeScan() const;
 
         /**
          * @brief Get the optimization solver's exit condition.
@@ -113,11 +113,11 @@ class ConfigParser {
         // The standard deviation used to calculate proximity-based reward.
         double sigma_;
 
-        // The spatial separation used to subsample the existing map.
-        double rMap_;
+        // The voxel resolution used to subsample the existing map.
+        double voxelSizeMap_;
 
-        // The spatial separation used to subsample new point cloud data.
-        double rNew_;
+        // The voxel resolution used to subsample new point cloud data.
+        double voxelSizeScan_;
 
         // The optimization solver’s exit condition is described as a minimum
         // reward improvement between iterations.
