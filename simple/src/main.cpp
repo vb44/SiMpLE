@@ -4,6 +4,7 @@
 #include "ConfigParser.hpp"
 #include "PointCloud.hpp"
 #include "PointMap.hpp"
+#include "PoseGraphOptimization.hpp"
 #include "Register.hpp"
 #include "utils.hpp"
 
@@ -29,6 +30,9 @@ int main(int argc, char* argv[]) {
     // Store the pose estimates in (roll,pitch,yaw,x,y,z,registrationScore) format.
     std::vector<std::vector<double> > poseEstimates(numScans, std::vector<double>(7));
     
+    std::ofstream logFile;
+    logFile.open(config.getOutputFileName() + "_log.txt", std::ios::out);
+    
     // Start the timer.
     auto startReg = std::chrono::high_resolution_clock::now();
 
@@ -36,6 +40,11 @@ int main(int argc, char* argv[]) {
     PointCloud newScan(config.getVoxelSizeScan(), config.getMaxSensorRange(), config.getMinSensorRange(), config.getKitti());
     PointMap subMap(config.getVoxelSizeMap(), config.getMaxSensorRange());
     Register scanToMapRegister(config.getConvergenceTol(), config.getSigma());
+    PoseGraphOptimization pgo(logFile, config.getKeyframeMeterGap(), config.getKeyframeDegGap(), config.getScDistThres(), config.getScMaximumRadius(),
+                              config.getRelinearizeThreshold(), config.getRelinearizeSkip(),config.getFilterSize(), config.getMapVizFilterSize(),
+                              config.getLoopFitnessScoreThreshold(), config.getOutputFileName());
+    int scanIntervalLoopClosure = config.getScanIntervalLoopClosure();
+    int scanIntervalPGO = config.getScanIntervalPGO();
 
     // Loop over all input scans, update the submap, and save the registration
     // result.
@@ -65,7 +74,29 @@ int main(int argc, char* argv[]) {
                                                         poseEstimates[scanNum][4], poseEstimates[scanNum][5]);
             
         subMap.updateMap(newScan.getPtCloud(), hypothesis);
-        auto finsh = std::chrono::high_resolution_clock::now();
+        auto finshFrontEnd = std::chrono::high_resolution_clock::now();
+
+        // Step 4: Update the pose graph optimization.
+        Pose6D pose = {poseEstimates[scanNum][3], poseEstimates[scanNum][4],
+                       poseEstimates[scanNum][5], poseEstimates[scanNum][0],
+                       poseEstimates[scanNum][1], poseEstimates[scanNum][2]};
+        
+        pgo.eigenToPCL(newScan.getPtCloudOriginal());
+        // pgo.laserCloudFullResHandler(ptCloud); // push to the buffer
+        pgo.laserOdometryHandler(pose); // push to the buffer
+        pgo.odometryBufTime.push(scanNum*0.1); // Assume 10Hz frequency - TODO: make this a config
+        pgo.fullResBufTime.push(scanNum*0.1);
+        pgo.process_pg();
+        pgo.process_icp(); // TODO: Check this.
+        if (scanNum % scanIntervalLoopClosure == 0)
+        {
+            pgo.process_lcd();
+        }
+        
+        if (scanNum % scanIntervalPGO == 0)
+        {
+            pgo.process_isam();
+        }
 
         // Print the progress to the terminal.
         // Comment printProgress to remove this. 
@@ -73,7 +104,7 @@ int main(int argc, char* argv[]) {
 
         // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(startRegistration-startReadScan).count() << " "
         //           << std::chrono::duration_cast<std::chrono::milliseconds>(startMapUpdate-startRegistration).count() << " "
-        //           << std::chrono::duration_cast<std::chrono::milliseconds>(finsh-startMapUpdate).count() << " " << newScan.getPtCloud().size() << std::endl;
+        //           << std::chrono::duration_cast<std::chrono::milliseconds>(finshFrontEnd-startMapUpdate).count() << " " << newScan.getPtCloud().size() << std::endl;
     }
     // End with a new line character for the progress bar.
     printf("\n");

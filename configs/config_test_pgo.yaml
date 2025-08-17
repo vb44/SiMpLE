@@ -1,0 +1,28 @@
+---
+# Test setup.
+scanPath: /path_to_scans/
+outputFileName: /path_to_output_files/fileName
+kitti: false
+
+# SiMpLE algorithm configuration.
+sigma: 0.5
+voxelSizeMap: 1.0
+voxelSizeScan: 1.0
+convergenceTol: 1e-5
+minSensorRange: 3
+
+# Hardware configuration.
+maxSensorRange: 100
+
+# PGO.
+scanIntervalLoopClosure: 10 # scans
+scanIntervalPGO: 100  # scans
+keyframeMeterGap: 0.0 # m
+keyframeDegGap: 0.0 # deg
+relinearizeThreshold: 0.01
+relinearizeSkip: 1
+scDistThres: 0.2 # m
+scMaximumRadius: 80.0 # m
+filterSize: 0.4 # m
+mapVizFilterSize: 0.4 
+loopFitnessScoreThreshold: 0.5

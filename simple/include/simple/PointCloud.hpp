@@ -75,6 +75,7 @@ class PointCloud {
          * @return const std::vector<Eigen::Vector4d>& The point cloud.
          */
         const std::vector<Eigen::Vector4d> &getPtCloud() const;
+        const std::vector<Eigen::Vector4d> &getPtCloudOriginal() const;
 
         /**
          * @brief Get the point cloud in a nanoflann-friendly container.
@@ -105,6 +106,7 @@ class PointCloud {
 
         // Container to store the point cloud.
         std::vector<Eigen::Vector4d> ptCloud_;
+        std::vector<Eigen::Vector4d> ptCloudOriginal_;
 
         // Container for a nanoflann-friendly point cloud.
         NanoflannPointsContainer<double> pcForKdTree_;

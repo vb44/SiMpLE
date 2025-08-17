@@ -21,6 +21,10 @@ PointCloud::PointCloud(double subsampleRadius, double maxSensorRange, double min
 const std::vector<Eigen::Vector4d>& PointCloud::getPtCloud() const {
     return ptCloud_;
 }
+
+const std::vector<Eigen::Vector4d>& PointCloud::getPtCloudOriginal() const {
+    return ptCloudOriginal_;
+}
         
 const NanoflannPointsContainer<double>& PointCloud::getPcForKdTree() const {
     return pcForKdTree_;
@@ -47,8 +51,6 @@ void PointCloud::readScan(std::string fileName) {
         ptsFromFile.push_back(item);
     }
 
-    unsigned int numPts = ptsFromFile.size() / NUM_COLUMNS_BIN; // .bin format
- 
     for (unsigned int i = 0; i < ptsFromFile.size(); i+=NUM_COLUMNS_BIN) {
         // Save the pt if it is within the maximum and mininmum sensor ranges.
         double normSquared = pow(ptsFromFile[i], 2) + pow(ptsFromFile[i+1], 2) + pow(ptsFromFile[i+2], 2);
@@ -67,6 +69,7 @@ void PointCloud::readScan(std::string fileName) {
 
 void PointCloud::readScanAndSubsample(std::string fileName) {
     ptCloud_.clear();
+    ptCloudOriginal_.clear();
     std::ifstream file(fileName, std::ios::in | std::ios::binary);
 
     float item;
@@ -76,8 +79,6 @@ void PointCloud::readScanAndSubsample(std::string fileName) {
         ptsFromFile.push_back(item);
     }
 
-    unsigned int numPts = ptsFromFile.size() / NUM_COLUMNS_BIN; // .bin format
- 
     int x, y, z;
     Eigen::Vector3d pt;
     for (auto& plane : gridOccupied_)
@@ -108,6 +109,7 @@ void PointCloud::readScanAndSubsample(std::string fileName) {
                 ptCloud_.push_back({ptsFromFile[i], ptsFromFile[i+1], ptsFromFile[i+2], 1});
             }
         }
+        ptCloudOriginal_.push_back({ptsFromFile[i], ptsFromFile[i+1], ptsFromFile[i+2], 1});
     }
 
     // Process the PointCloud.
@@ -134,7 +136,7 @@ void PointCloud::correctKittiScan_() {
     tbb::parallel_for(
     tbb::blocked_range<int>(0, ptCloud_.size()),
     [&](tbb::blocked_range<int> r) {
-        for (unsigned int i = r.begin(); i < r.end(); i++) {
+        for (int i = r.begin(); i < r.end(); i++) {
             Eigen::Vector3d pt;
             Eigen::Vector3d ptCorrected;
             pt << ptCloud_[i](0), ptCloud_[i][1], ptCloud_[i][2];
@@ -153,7 +155,6 @@ void PointCloud::subsample_(std::vector<Eigen::Vector4d> &pts, double subsampleR
 
     // Create a Kd tree (dimension, PointCloud, max leaf).
     my_kd_tree_t *scanKdTree = new my_kd_tree_t(3, pcForKdTree_,{10});
-    unsigned int counter = 0;
 
     // Subsample radially.
     for (unsigned int i : allPoints_) {

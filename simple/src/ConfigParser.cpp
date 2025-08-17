@@ -21,6 +21,18 @@ int ConfigParser::parseConfig() {
         scanPath_ = configFromYaml["scanPath"].as<std::string>();
         outputFileName_ = configFromYaml["outputFileName"].as<std::string>();
 
+        scanIntervalLoopClosure_ = configFromYaml["scanIntervalLoopClosure"].as<int>();
+        scanIntervalPGO_ = configFromYaml["scanIntervalPGO"].as<int>();
+        keyframeMeterGap_ = configFromYaml["keyframeMeterGap"].as<double>();
+        keyframeDegGap_ = configFromYaml["keyframeDegGap"].as<double>();
+        relinearizeThreshold_ = configFromYaml["relinearizeThreshold"].as<double>();
+        relinearizeSkip_ = configFromYaml["relinearizeSkip"].as<double>();
+        scDistThres_ = configFromYaml["scDistThres"].as<double>();
+        scMaximumRadius_ = configFromYaml["scMaximumRadius"].as<double>(); 
+        filterSize_ = configFromYaml["filterSize"].as<double>();
+        mapVizFilterSize_ = configFromYaml["mapVizFilterSize"].as<double>();
+        loopFitnessScoreThreshold_ = configFromYaml["loopFitnessScoreThreshold"].as<double>();
+
     } catch(const YAML::BadFile& e) {
         std::cerr << e.what() << std::endl;
         return 1;
@@ -31,31 +43,31 @@ int ConfigParser::parseConfig() {
     return 0;
 }
 
-const bool ConfigParser::getKitti() const {
+bool ConfigParser::getKitti() const {
     return kitti_;
 }
 
-const double ConfigParser::getSigma() const {
+double ConfigParser::getSigma() const {
     return sigma_;
 }
 
-const double ConfigParser::getVoxelSizeMap() const {
+double ConfigParser::getVoxelSizeMap() const {
     return voxelSizeMap_;
 }
 
-const double ConfigParser::getVoxelSizeScan() const {
+double ConfigParser::getVoxelSizeScan() const {
     return voxelSizeScan_;
 }
 
-const double ConfigParser::getConvergenceTol() const {
+double ConfigParser::getConvergenceTol() const {
     return convergenceTol_;
 }
 
-const double ConfigParser::getMaxSensorRange() const {
+double ConfigParser::getMaxSensorRange() const {
     return maxSensorRange_;
 }
 
-const double ConfigParser::getMinSensorRange() const {
+double ConfigParser::getMinSensorRange() const {
     return minSensorRange_;
 }
 
@@ -65,4 +77,48 @@ const std::string ConfigParser::getScanPath() const {
 
 const std::string ConfigParser::getOutputFileName() const {
     return outputFileName_;
+}
+
+int ConfigParser::getScanIntervalLoopClosure() const {
+    return scanIntervalLoopClosure_;
+}
+
+int ConfigParser::getScanIntervalPGO() const {
+    return scanIntervalPGO_;
+}
+
+double ConfigParser::getKeyframeMeterGap() const {
+    return keyframeMeterGap_;
+}
+
+double ConfigParser::getKeyframeDegGap() const {
+    return keyframeDegGap_;
+}
+
+double ConfigParser::getRelinearizeThreshold() const {
+    return relinearizeThreshold_;
+}
+
+double ConfigParser::getRelinearizeSkip() const {
+    return relinearizeSkip_;
+}
+
+double ConfigParser::getScDistThres() const {
+    return scDistThres_;
+}
+
+double ConfigParser::getScMaximumRadius() const {
+    return scMaximumRadius_;
+}
+
+double ConfigParser::getFilterSize() const {
+    return filterSize_;
+}
+
+double ConfigParser::getMapVizFilterSize() const {
+    return mapVizFilterSize_;
+}
+
+double ConfigParser::getLoopFitnessScoreThreshold() const {
+    return loopFitnessScoreThreshold_;
 }

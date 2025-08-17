@@ -25,7 +25,7 @@ double ObjectiveFunction::operator()(const column_vector& m) const {
     tbb::parallel_for(
     tbb::blocked_range<int>(0, scan_.size()),
     [&](tbb::blocked_range<int> r) {
-        for (unsigned int i = r.begin(); i < r.end(); i++) {
+        for (int i = r.begin(); i < r.end(); i++) {
             uint32_t retIndex;
             double outDistSqr;
             Eigen::Vector4d ptTf = hypothesis*scan_[i];

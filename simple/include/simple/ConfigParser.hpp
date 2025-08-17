@@ -43,14 +43,14 @@ class ConfigParser {
          * @return true If the KITTI flag is set.
          * @return false If the KITTI flag is not set.
          */
-        const bool getKitti() const;
+        bool getKitti() const;
 
         /**
          * @brief Get the sigma value.
          * 
          * @return double The sigma value.
          */
-        const double getSigma() const;
+        double getSigma() const;
 
         /**
          * @brief Get the voxel resolution used to subsample the existing
@@ -58,7 +58,7 @@ class ConfigParser {
          * 
          * @return double The voxel resolution for the map.
          */
-        const double getVoxelSizeMap() const;
+        double getVoxelSizeMap() const;
 
         /**
          * @brief Get the voxel resolution used to subsample new point cloud
@@ -66,28 +66,28 @@ class ConfigParser {
          * 
          * @return double The voxel resolution for the scan.
          */
-        const double getVoxelSizeScan() const;
+        double getVoxelSizeScan() const;
 
         /**
          * @brief Get the optimization solver's exit condition.
          * 
          * @return double The convergence tolerance.
          */
-        const double getConvergenceTol() const;
+        double getConvergenceTol() const;
 
         /**
          * @brief Get the sensor's maximum range.
          * 
          * @return double The sensor's maximum range.
          */
-        const double getMaxSensorRange() const;
+        double getMaxSensorRange() const;
 
         /**
          * @brief Get the sensor's minimum range.
          * 
          * @return double The sensor's minimum range.
          */
-        const double getMinSensorRange() const;
+        double getMinSensorRange() const;
 
         /**
          * @brief Get the path to the scan files.
@@ -102,6 +102,19 @@ class ConfigParser {
          * @return std::string The output file name.
          */
         const std::string getOutputFileName() const;
+
+        // PGO
+        int getScanIntervalLoopClosure() const;
+        int getScanIntervalPGO() const;
+        double getKeyframeMeterGap() const;
+        double getKeyframeDegGap() const;
+        double getRelinearizeThreshold() const;
+        double getRelinearizeSkip() const;
+        double getScDistThres() const;
+        double getScMaximumRadius() const;
+        double getFilterSize() const;
+        double getMapVizFilterSize() const;
+        double getLoopFitnessScoreThreshold() const;
         
     private:
         // The expected number of commandline arguments.
@@ -137,6 +150,19 @@ class ConfigParser {
 
         // Path to the algorithm configuration file.
         std::string yamlFilePath_;
+
+        // PGO
+        int scanIntervalLoopClosure_;
+        int scanIntervalPGO_;
+        double keyframeMeterGap_; // pose assignment every k m move 
+        double keyframeDegGap_; // pose assignment every k deg rot
+        double relinearizeThreshold_;
+        double relinearizeSkip_;
+        double scDistThres_;  
+        double scMaximumRadius_; // 80 is recommended for outdoor, and lower (ex, 20, 40) values are recommended for indoor 
+        double filterSize_;
+        double mapVizFilterSize_; // pose assignment every k frames 
+        double loopFitnessScoreThreshold_; // user parameter but fixed low value is safe.
 };
 
 #endif // CONFIGPARSER_H
