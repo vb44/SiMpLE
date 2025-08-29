@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
                               config.getLoopFitnessScoreThreshold(), config.getOutputFileName());
     int scanIntervalLoopClosure = config.getScanIntervalLoopClosure();
     int scanIntervalPGO = config.getScanIntervalPGO();
+    bool useLoopClosure = config.getUseLoopClosure();
 
     // Loop over all input scans, update the submap, and save the registration
     // result.
@@ -77,27 +78,25 @@ int main(int argc, char* argv[]) {
         auto finshFrontEnd = std::chrono::high_resolution_clock::now();
 
         // Step 4: Update the pose graph optimization.
-        Pose6D pose = {poseEstimates[scanNum][3], poseEstimates[scanNum][4],
-                       poseEstimates[scanNum][5], poseEstimates[scanNum][0],
-                       poseEstimates[scanNum][1], poseEstimates[scanNum][2]};
-        
-        pgo.eigenToPCL(newScan.getPtCloudOriginal());
-        // pgo.laserCloudFullResHandler(ptCloud); // push to the buffer
-        pgo.laserOdometryHandler(pose); // push to the buffer
-        pgo.odometryBufTime.push(scanNum*0.1); // Assume 10Hz frequency - TODO: make this a config
-        pgo.fullResBufTime.push(scanNum*0.1);
-        pgo.process_pg();
-        pgo.process_icp(); // TODO: Check this.
-        if (scanNum % scanIntervalLoopClosure == 0)
-        {
-            pgo.process_lcd();
+        if (useLoopClosure) {
+            Pose6D pose = {poseEstimates[scanNum][3], poseEstimates[scanNum][4],
+                           poseEstimates[scanNum][5], poseEstimates[scanNum][0],
+                           poseEstimates[scanNum][1], poseEstimates[scanNum][2]};
+            pgo.eigenToPCL(newScan.getPtCloudOriginal());
+            pgo.laserOdometryHandler(pose); // push to the buffer
+            pgo.odometryBufTime.push(scanNum*0.1); // Assume 10Hz frequency - TODO: make this a config
+            pgo.fullResBufTime.push(scanNum*0.1);
+            pgo.process_pg();
+            pgo.process_icp(); // TODO: Check this.
+            if (scanNum % scanIntervalLoopClosure == 0)
+            {
+                pgo.process_lcd();
+            }
+            if (scanNum % scanIntervalPGO == 0)
+            {
+                pgo.process_isam();
+            }
         }
-        
-        if (scanNum % scanIntervalPGO == 0)
-        {
-            pgo.process_isam();
-        }
-
         // Print the progress to the terminal.
         // Comment printProgress to remove this. 
         utils::printProgress((double(scanNum) / numScans));
@@ -106,6 +105,11 @@ int main(int argc, char* argv[]) {
         //           << std::chrono::duration_cast<std::chrono::milliseconds>(startMapUpdate-startRegistration).count() << " "
         //           << std::chrono::duration_cast<std::chrono::milliseconds>(finshFrontEnd-startMapUpdate).count() << " " << newScan.getPtCloud().size() << std::endl;
     }
+
+    if (useLoopClosure) {
+        pgo.process_isam();
+    }
+
     // End with a new line character for the progress bar.
     printf("\n");
 

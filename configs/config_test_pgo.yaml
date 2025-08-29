@@ -9,12 +9,13 @@ sigma: 0.5
 voxelSizeMap: 1.0
 voxelSizeScan: 1.0
 convergenceTol: 1e-5
-minSensorRange: 3
+minSensorRange: 0
 
 # Hardware configuration.
 maxSensorRange: 100
 
 # PGO.
+useLoopClosure: true
 scanIntervalLoopClosure: 10 # scans
 scanIntervalPGO: 100  # scans
 keyframeMeterGap: 0.0 # m

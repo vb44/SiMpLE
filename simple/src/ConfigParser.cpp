@@ -20,6 +20,7 @@ int ConfigParser::parseConfig() {
         minSensorRange_ = configFromYaml["minSensorRange"].as<double>();
         scanPath_ = configFromYaml["scanPath"].as<std::string>();
         outputFileName_ = configFromYaml["outputFileName"].as<std::string>();
+        useLoopClosure_ = configFromYaml["useLoopClosure"].as<bool>();
 
         scanIntervalLoopClosure_ = configFromYaml["scanIntervalLoopClosure"].as<int>();
         scanIntervalPGO_ = configFromYaml["scanIntervalPGO"].as<int>();
@@ -121,4 +122,8 @@ double ConfigParser::getMapVizFilterSize() const {
 
 double ConfigParser::getLoopFitnessScoreThreshold() const {
     return loopFitnessScoreThreshold_;
+}
+
+bool ConfigParser::getUseLoopClosure() const {
+    return useLoopClosure_;
 }

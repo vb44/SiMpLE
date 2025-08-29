@@ -103,6 +103,14 @@ class ConfigParser {
          */
         const std::string getOutputFileName() const;
 
+        /**
+         * @brief Get the use loop closure flag.
+         *
+         * @return true If the use loop closure flag is set.
+         * @return false If the use loop closure flag is not set.
+         */
+        bool getUseLoopClosure() const;
+
         // PGO
         int getScanIntervalLoopClosure() const;
         int getScanIntervalPGO() const;
@@ -122,6 +130,9 @@ class ConfigParser {
 
         // Correct the KITTI scans.
         bool kitti_;
+
+        // Loop closure flag.
+        bool useLoopClosure_;
 
         // The standard deviation used to calculate proximity-based reward.
         double sigma_;
