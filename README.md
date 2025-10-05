@@ -34,16 +34,14 @@ The following includes:
 10. [References](#references).
 
 ## Method
-The method has five configuration parameters.
-1. ***rNew*** is the new point cloud spatial subsampling radius.
-2. ***rMap*** is the spatial subsampling radius for the local map.
+The method has six configuration parameters.
+1. ***voxelSizeScan*** is the new point cloud spatial subsampling size (note the parameter has changed since the original paper).
+2. ***voxelSizeMap*** is the spatial subsampling size for the local map (note the parameter has changed since the original paper).
 3. ***&sigma;*** is the standard deviation of the Gaussian reward function - see the paper for more details.
 4. ***&varepsilon;*** is the convergence tolerance of the optimisation solver. 
-5. ***rMin*** is optional and for computational benefit only. The default value is zero where it has no effect. Increasing this value eliminates the rings commonly formed around the sensor to reduce the size of the point cloud without losing geometric information.
+5. ***minSensorRange*** is optional and for computational benefit only. The default value is zero where it has no effect. Increasing this value eliminates the rings commonly formed around the sensor to reduce the size of the point cloud without losing geometric information.
+6. ***maxSensorRange*** is the maximum radius of the new point cloud and the size of the local map.
 
-There are also hardware settings:
-* ***rMax*** is the maximum radius of the point cloud. This is hardware-dependent and not a configuration parameter.
- 
 ## Using Docker
 For easy reproducibility, a docker image has been provided. To use it, clone this repository and inside the repository directory run the following command to build the docker image:
 ```
@@ -58,14 +56,14 @@ outputFileName: ./dataset/result
 kitti: false
 
 # Algorithm configuration.
-sigma: 0.35
-rMap: 2
-rNew: 0.5
-convergenceTol: 1e-3
-minSensorRange: 10
+sigma: 0.5
+voxelSizeMap: 1.0
+voxelSizeScan: 1.0
+convergenceTol: 1e-6
+minSensorRange: 1
 
 # Hardware configuration.
-maxSensorRange: 120
+maxSensorRange: 100
 ```
 
 Then you can run the following command to execute simple:
@@ -179,14 +177,14 @@ outputFileName: /path_to_output_files/fileName
 kitti: true
 
 # Algorithm configuration.
-sigma: 0.3
-rMap: 0.5
-rNew: 0.3
+sigma: 0.5
+voxelSizeMap: 1.0
+voxelSizeScan: 1.0
 convergenceTol: 1e-6
-minSensorRange: 0
+minSensorRange: 1
 
 # Hardware configuration.
-maxSensorRange: 120
+maxSensorRange: 100
 ```
 
 ## Sample Results and Evaluation
@@ -235,18 +233,14 @@ SiMpLE has been extensively tested on numerous benchmark datasets in different e
 For complete transparency, an extensive list of all identifiable parameters and their source is displayed below.
 
 ### Algorithm Configuration Parameters
-| Parameter    |          Source           |                            Use                            |
-|--------------|:-------------------------:|:---------------------------------------------------------:|
-| rNew         | Algorithm configuration.  | New scan subsampling.                                     |
-| rMap         | Algorithm configuration.  | Local map subsampling.                                    |
-| &sigma;      | Algorithm configuration.  | Reward standard deviation.                                |
-| &varepsilon; | Algorithm configuration.  | Optimisation exit condition.                              |
-| rMin         | Algorithm configuration.  | Minimum sensor range used for reducing point cloud size.  |
-
-### Hardware Parameters
-| Parameter |         Source          |             Use             |
-|-----------|:-----------------------:|:---------------------------:|
-| rMax      | Hardware specification. | Maintaining local map size. |
+| Parameter    |                            Use                            |
+|--------------|:---------------------------------------------------------:|
+| voxelSizeScan| New scan subsampling.                                     |
+| voxelSizeMap | Local map subsampling.                                    |
+| &sigma;      | Reward standard deviation.                                |
+| &varepsilon; | Optimisation exit condition.                              |
+| rMin         | Minimum sensor range used for reducing point cloud size.  |
+| rMax      | Maintaining local map size. |
 
 
 ### Default Unchanged Parameters
