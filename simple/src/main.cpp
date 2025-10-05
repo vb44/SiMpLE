@@ -33,22 +33,22 @@ int main(int argc, char* argv[]) {
     auto startReg = std::chrono::high_resolution_clock::now();
 
     // Container for a new scan.
-    PointCloud newScan(config.getVoxelSizeScan(), config.getMaxSensorRange(), config.getMinSensorRange(), config.getKitti());
+    PointCloud newScan(config.getVoxelSizeScan(), config.getMaxSensorRange(),
+                       config.getMinSensorRange(), config.getKitti());
     PointMap subMap(config.getVoxelSizeMap(), config.getMaxSensorRange());
     Register scanToMapRegister(config.getConvergenceTol(), config.getSigma());
 
     // Loop over all input scans, update the submap, and save the registration
     // result.
     for (unsigned int scanNum = 0; scanNum < numScans; scanNum++) {
-        // Step 1: Read the scan and subsample the scan at rNew.
+        // Step 1: Read the scan and subsample the scan.
         auto startReadScan = std::chrono::high_resolution_clock::now();
-        // newScan.readScan(scanFiles[scanNum]);
         newScan.readScanAndSubsample(scanFiles[scanNum]);
         
         // Step 2: Input point cloud to local map registration.
         auto startRegistration = std::chrono::high_resolution_clock::now();
         if (scanNum > 0) {
-            scanToMapRegister.registerScan(newScan.getPtCloud(), subMap.getPcForKdTree());
+            scanToMapRegister.registerScan(newScan.getPtCloud(),subMap.getPcForKdTree());
 
             column_vector res = scanToMapRegister.getRegResult();
 
@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
         
         // Step 3: Update the local map.
         auto startMapUpdate = std::chrono::high_resolution_clock::now();
+        
         // Transform the current scan to the current pose estimate.
         Eigen::Matrix4d hypothesis = utils::homogeneous(poseEstimates[scanNum][0], poseEstimates[scanNum][1],
                                                         poseEstimates[scanNum][2], poseEstimates[scanNum][3],
@@ -71,9 +72,6 @@ int main(int argc, char* argv[]) {
         // Comment printProgress to remove this. 
         utils::printProgress((double(scanNum) / numScans));
 
-        // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(startRegistration-startReadScan).count() << " "
-        //           << std::chrono::duration_cast<std::chrono::milliseconds>(startMapUpdate-startRegistration).count() << " "
-        //           << std::chrono::duration_cast<std::chrono::milliseconds>(finsh-startMapUpdate).count() << " " << newScan.getPtCloud().size() << std::endl;
     }
     // End with a new line character for the progress bar.
     printf("\n");
