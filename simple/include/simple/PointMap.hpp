@@ -16,10 +16,10 @@ class PointMap : public PointCloud {
         /**
          * @brief Construct a new Map object.
          * 
-         * @param mapSubsampleRadius2 The spatial separation used to subsample the local map, squared (meters^2).
-         * @param maxSensorRange     The sensor's maximum range.
+         * @param voxelSize         Point cloud voxel size.
+         * @param maxSensorRange    The sensor's maximum range.
          */
-        PointMap(double mapSubsampleRadius, double maxSensorRange);
+        PointMap(double voxelSize, double maxSensorRange);
 
         /**
          * @brief Destroy the Map object.

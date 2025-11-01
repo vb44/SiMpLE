@@ -1,8 +1,8 @@
 #include "PointMap.hpp"
 
-PointMap::PointMap(double mapSubsampleRadius, double maxSensorRange)
+PointMap::PointMap(double voxelSize, double maxSensorRange)
     : PointCloud(maxSensorRange) {
-    subsampleRadius2_ = mapSubsampleRadius * mapSubsampleRadius;
+    voxelSize_ = voxelSize;
 }
 
 void PointMap::updateMap(const std::vector<Eigen::Vector4d> &pts, const Eigen::Matrix4d &pose) {
@@ -14,11 +14,7 @@ void PointMap::updateMap(const std::vector<Eigen::Vector4d> &pts, const Eigen::M
 
     // Subsample and save the new map.
     std::vector<Eigen::Vector4d> tempMap;
-    allPoints_.clear();
-    for (size_t i = 0; i < ptCloud_.size(); i++) {
-        allPoints_.insert(i);
-    }
-    subsample_(ptCloud_, subsampleRadius2_);
+    subsample_(ptCloud_, voxelSize_);
     tempMap = ptCloud_;
 
     // Remove points outside rMax to limit the size of the map.

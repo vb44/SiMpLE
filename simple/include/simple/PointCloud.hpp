@@ -7,6 +7,7 @@
 #include <fstream>
 #include <set>
 #include <tbb/parallel_for.h>
+#include <unordered_map>
 
 #include "nanoflannUtils.hpp"
 #include "utils.hpp"
@@ -28,12 +29,12 @@ class PointCloud {
         /**
          * @brief Construct a new Scan object.
          * 
-         * @param subsampleRadius Point cloud subsampling radius.
+         * @param voxelSize Point cloud voxel size.
          * @param maxSensorRange Maximum sensor range.
          * @param minSensorRange Minimum sensor range.
          * @param kitti Flag when using kitti scans as these need to be corrected.
          */
-        PointCloud(double subsampleRadius, double maxSensorRange,
+        PointCloud(double voxelSize, double maxSensorRange,
                    double minSensorRange, bool kitti);
         
         /**
@@ -43,7 +44,7 @@ class PointCloud {
         ~PointCloud() = default;
 
         /**
-         * @brief Add point to pointcloud if it is within the maximum and mininmum sensor ranges
+         * @brief Add point to pointcloud if it is within the maximum and mininmum sensor ranges.
          *
          * @param x point x coordinate.
          * @param y point y coordinate.
@@ -83,17 +84,14 @@ class PointCloud {
     protected:
         static constexpr int NUM_COLUMNS_BIN = 4;
 
-        // Point cloud subsample radius.
-        double subsampleRadius2_; // squared (^2)
+        // Point cloud voxel size.
+        double voxelSize_; // meters
         
         // Maximum range of the points in the scan.
         double maxSensorRange2_; // squared (^2)
 
         // Minimum range of the points in the scan.
         double minSensorRange2_; // squared (^2)
-
-        // A container used for radially subsampling the points.
-        std::set<int> allPoints_;
 
         // Container to store the point cloud.
         std::vector<Eigen::Vector4d> ptCloud_;
@@ -102,12 +100,12 @@ class PointCloud {
         NanoflannPointsContainer<double> pcForKdTree_;
 
         /**
-         * @brief Radially subsample the point cloud.
+         * @brief Subsample the point cloud using a voxel-based filter (original point is retained).
          * 
-         * @param pts               The points to subsample.
-         * @param subsampleRadius2   The subsample radius in meters^2.
+         * @param pts       The points to subsample.
+         * @param voxelSize The voxel size in meters.
          */
-        void subsample_(std::vector<Eigen::Vector4d> &pts, double subsampleRadius2);
+        void subsample_(std::vector<Eigen::Vector4d> &pts, double voxelSize_);
 
         /**
          * @brief Convert the points to a nanoflann-friendly container.

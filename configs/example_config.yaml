@@ -1,15 +1,15 @@
 ---
 # Test setup.
 scanPath: /path_to_scans/
-outputFileName: /path_to_output_files/fileName
+outputFileName: /path_to_output_file/fileName
 kitti: false
 
 # Algorithm configuration.
-sigma: 0.35
-rMap: 2
-rNew: 0.5
+sigma: 0.3
+voxelSizeMap: 1.0
+voxelSizeScan: 0.5
 convergenceTol: 1e-3
-minSensorRange: 5
+minSensorRange: 1
 
 # Hardware configuration.
-maxSensorRange: 120
+maxSensorRange: 100
