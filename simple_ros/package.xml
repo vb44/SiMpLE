@@ -8,11 +8,14 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>simple</build_depend>
+  <depend>simple</depend>
 
   <depend>rclcpp</depend>
   <depend>nav_msgs</depend>
+  <depend>liborocos-kdl</depend>
   <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

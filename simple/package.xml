@@ -8,9 +8,12 @@
 
   <build_depend>eigen</build_depend>
   <build_depend>libnanoflann-dev</build_depend>
+  <build_depend>libjpeg</build_depend>
+  <build_depend>libblas-dev</build_depend>
+  <build_depend>liblapack-dev</build_depend>
+  <build_depend>tbb</build_depend>
 
   <depend>libdlib-dev</depend>
-  <depend>tbb</depend>
   <depend>yaml-cpp</depend>
 
   <export>
