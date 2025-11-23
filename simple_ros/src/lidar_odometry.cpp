@@ -18,8 +18,8 @@ class LidarOdometry : public rclcpp::Node {
 public:
   LidarOdometry() : Node("SiMpLE_lidar_odometry") {
     subPointcloud_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      "input_cloud", 10, std::bind(&LidarOdometry::pointcloudCallback, this, _1));
-    pubOdom_ = this->create_publisher<nav_msgs::msg::Odometry>("output_odom", 10);
+      "pointcloud", 10, std::bind(&LidarOdometry::pointcloudCallback, this, _1));
+    pubOdom_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
     rNew_ = this->declare_parameter<float>("rNew", 0.5);
     float rMap = this->declare_parameter<float>("rMap", 2.0);
