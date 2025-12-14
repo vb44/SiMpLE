@@ -21,21 +21,21 @@ public:
       "pointcloud", 10, std::bind(&LidarOdometry::pointcloudCallback, this, _1));
     pubOdom_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
-    rNew_ = this->declare_parameter<float>("rNew", 0.5);
-    float rMap = this->declare_parameter<float>("rMap", 2.0);
+    voxelSizeScan_ = this->declare_parameter<float>("voxelSizeScan", 0.5);
+    float voxelSizeMap = this->declare_parameter<float>("voxelSizeMap", 2.0);
     rMin_ = this->declare_parameter<float>("rMin", 5.0);
     rMax_ = this->declare_parameter<float>("rMax", 120);
     float sigma = this->declare_parameter<float>("sigma", 0.3);
     float epsilon = this->declare_parameter<float>("epsilon", 1e-3);
     odomMessage_.header.frame_id = this->declare_parameter<std::string>("odom_frame", "odom");
 
-    subMap_ = std::make_unique<PointMap>(rMap, rMax_);
+    subMap_ = std::make_unique<PointMap>(voxelSizeMap, rMax_);
     scanToMapRegister_ = std::make_unique<Register>(epsilon, sigma);
   }
 
 private:
   void pointcloudCallback(sensor_msgs::msg::PointCloud2::SharedPtr msg) {
-    PointCloud newScan = PointCloud(rNew_, rMax_, rMin_, false);
+    PointCloud newScan = PointCloud(voxelSizeScan_, rMax_, rMin_, false);
 
     sensor_msgs::PointCloud2Iterator<float> iterX(*msg, "x");
     sensor_msgs::PointCloud2Iterator<float> iterY(*msg, "y");
@@ -105,7 +105,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdom_;
   nav_msgs::msg::Odometry odomMessage_;
 
-  float rNew_, rMin_, rMax_;
+  float voxelSizeScan_, rMin_, rMax_;
   bool initialised_ = false;
 
   std::unique_ptr<PointMap> subMap_;
